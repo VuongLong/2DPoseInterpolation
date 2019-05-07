@@ -28,38 +28,60 @@ def deficiency_matrix(A, A1):
 
 
 def interpolation_13(A, A1):
-	A_new, A0_new, A1_new, A1_MeanMat = deficiency_matrix(A, A1)
-	
-	U = mysvd(np.matmul(A_new, A_new.T))
-	U0 = mysvd(np.matmul(A0_new, A0_new.T)) 
+	#A_new, A0_new, A1_new, A1_MeanMat = deficiency_matrix(A, A1)
+	A0 = A
+	A0[np.where(A1 == 0)] = 0
+
+	U = mysvd(np.matmul(A, A.T))
+	U0 = mysvd(np.matmul(A0, A0.T)) 
 	TMat = np.matmul(U0.T, U)  #U = U0TMat
 		
-	U1 = mysvd(np.matmul(A1_new, A1_new.T)) 
+	U1 = mysvd(np.matmul(A1, A1.T)) 
 	
-	Astar =  np.matmul(np.matmul(np.matmul(U, TMat.T), U1.T), A1_new)
-	Astar = Astar + A1_MeanMat
+	TTU1TA1 = np.matmul(TMat.T, np.matmul(U1.T, A1))
+	Astar =  np.matmul(U, TTU1TA1)
 	
-	'''replace zero entities'''    
-	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
-	return Astar.T
+	# for task 5
+	joint_length = Astar.shape[0]
+	frame_length = Astar.shape[1]
 
+	I = np.identity(frame_length)
+	IUT = np.kron(I, U.T)
+
+	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
+	return A1.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
 
 def interpolation_24(A, A1):
-	A_new, A0_new, A1_new, A1_MeanMat= deficiency_matrix(A, A1)
-	
-	V = mysvd(np.matmul(A_new.T, A_new)) 
-	V0 = mysvd(np.matmul(A0_new.T, A0_new)) 
-	TMat = np.matmul(V0.T, V)  #U = U0TMat
-		
-	V1 = mysvd(np.matmul(A1_new.T, A1_new)) 
-	
-	Astar =  np.matmul(np.matmul(np.matmul(A1_new, V1), TMat), V.T)
-	Astar = Astar + A1_MeanMat
-	
-	'''replace zero entities'''    
-	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
-	return Astar.T
+	#A_new, A0_new, A1_new, A1_MeanMat= deficiency_matrix(A, A1)
+	A0 = A
+	A0[np.where(A1 == 0)] = 0
 
+	V = mysvd(np.matmul(A.T, A)) 
+	V0 = mysvd(np.matmul(A0.T, A0)) 
+	F = np.matmul(V0.T, V)
+		
+	V1 = mysvd(np.matmul(A1.T, A1))
+
+	A1V1F = np.matmul(np.matmul(A1, V1), F)
+	Astar =  np.matmul(A1V1F, V.T)
+
+	# for task 5
+	joint_length = Astar.shape[0]
+	frame_length = Astar.shape[1]
+
+	I = np.identity(joint_length)
+	VTI = np.kron(V.T, I)
+
+	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
+	return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
+
+# AX=B
+def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR):
+	A = np.concatenate((IUT, VTI), axis=0)
+	B = np.concatenate((TTU1TA1R, A1V1FR), axis=0)
+	X = np.linalg.lstsq(A, B)
+	A1 = X[0].reshape(A1.shape[0],A1.shape[1])
+	return A1.T
 
 def random_drop_joint(A, num_drop=[3, 5]):
 	dims = A.shape
