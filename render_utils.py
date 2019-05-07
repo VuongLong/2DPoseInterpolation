@@ -4,6 +4,7 @@ import sys
 import cv2
 import os
 
+
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [0, 255, 255], \
 		  [85, 0, 255], [0, 255, 0], [255, 0, 170], [255, 0, 0], [0, 255, 255], \
 		  [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 255, 0], [170, 255, 0], \
@@ -23,39 +24,19 @@ def drawline(img,a,b,Xs,Ys,c):
 
 def contruct_skeletion_to_image(fullfilenames, Tracking2D):
 	img = cv2.imread(fullfilenames)
-	'''
+	
 	Xs=[]
 	Ys=[]
-	for j in range(Tracking2D.shape[0]):
-		x=round(float(Tracking2D[j][0]))
-		y=round(float(Tracking2D[j][1]))
-		Xs.append(x)
-		Ys.append(y)
-		cv2.circle(img,(x, y),2, (0,0,0),thickness=-1)	
-	for (joint, color) in zip(pose, draw_colors):
-		drawline(img, joint[0], joint[1], Xs, Ys, color)
-	'''
-
-	Xs=[]
-	Ys=[]
-	for j in range(Tracking2D.shape[0]):
-		x=round(float(Tracking2D[j][0]))
-		y=round(float(Tracking2D[j][1]))
-		Xs.append(x)
-		Ys.append(y)
-		#cv2.circle(img,(x,y),2,(0,0,0),thickness=-1)
-	for (joint, color) in zip(pose, draw_colors):
-		drawline(img, joint[0], joint[1], Xs, Ys, color)
-	#cv.imshow("Image",img)
-	#cv.waitKey(0)
-	#print(i)
-
 	for j in range(Tracking2D.shape[0]):
 		x=round(float(Tracking2D[j][0]))
 		y=round(float(Tracking2D[j][1]))
 		Xs.append(x)
 		Ys.append(y)
 		cv2.circle(img,(x,y),2,(0,0,0),thickness=-1)
+
+	for (joint, color) in zip(pose, draw_colors):
+		drawline(img, joint[0], joint[1], Xs, Ys, color)
+
 	return img
 
 
@@ -93,26 +74,6 @@ def show_video(video_dir, wait_key=25):
 			break 
 	cap.release()
 	cv2.destroyAllWindows()
-
-
-def read_tracking_data(data_dir, ingore_confidence=False):
-	Tracking2D = []
-	f=open(data_dir, 'r')
-	j=0
-	for line in f:
-		Tracking2D.append([])
-		elements = line.split(',')
-		Tracking2D[j].append( [elements[i] for i in range(len(elements))] )
-		j+=1
-	f.close()
-	Tracking2D = np.array(Tracking2D) # list can not read by index while arr can be
-	Tracking2D = np.squeeze(Tracking2D)
-
-	if ingore_confidence:
-		Tracking2D = Tracking2D.reshape(Tracking2D.shape[0],25,3)
-		Tracking2D = Tracking2D[..., 0:2]
-		Tracking2D = Tracking2D.reshape(Tracking2D.shape[0],50)
-	return Tracking2D
 
 
 
