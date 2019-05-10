@@ -19,3 +19,24 @@ def read_tracking_data(data_dir, ingore_confidence=False):
 		Tracking2D = Tracking2D[..., 0:2]
 		Tracking2D = Tracking2D.reshape(Tracking2D.shape[0],50)
 	return Tracking2D
+
+def find_full_matrix(Tracking2D, frame_length, overlap=False):
+	count = 0
+	list_full = []
+	for frame in Tracking2D:
+		if frame[frame==0].shape[0] == 0:
+			count++
+			if count > frame_length:
+				list_full.append([count-frame_length, count])
+				if not overlap:
+					count = 0
+	return list_full
+
+# Todo
+def find_miss_matrix(Tracking2D, frame_length, bum_frame_miss, max_miss_in_a_frame):
+	pass
+
+# Todo
+# plot miss_matrix on video to check
+def contruct_sellect_matrix()
+	pass
