@@ -48,7 +48,11 @@ def interpolation_13(A, A1):
 	I = np.identity(frame_length)
 	IUT = np.kron(I, U.T)
 
+	#print(np.where(A1 == 0))
+	#print(Astar[np.where(A1 == 0)])
+
 	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
+
 	return A1.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
 
 def interpolation_24(A, A1):
@@ -83,6 +87,7 @@ def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR):
 	A1 = X[0].reshape(A1.shape[0],A1.shape[1])
 	return A1.T
 
+'''
 def random_drop_joint(A, num_drop=[3, 5]):
 	dims = A.shape
 	A = A.reshape(dims[0], 25, int(dims[1] / 25))
@@ -92,7 +97,7 @@ def random_drop_joint(A, num_drop=[3, 5]):
 		for idx in indices:
 			A[i, idx] = 0
 	return A
-
+'''
 
 
 
