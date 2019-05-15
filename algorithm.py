@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 def mysvd(dataMat):
@@ -9,7 +10,9 @@ def mysvd(dataMat):
 	return U
 
 
-def deficiency_matrix(A, A1):
+def deficiency_matrix(AA, AA1):
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
 	A_MeanVec = np.mean(A, 0)
 	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
 	A_new = A - A_MeanMat
@@ -27,9 +30,11 @@ def deficiency_matrix(A, A1):
 	return A_new, A0_new, A1_new, A1_MeanMat
 
 
-def interpolation_13(A, A1):
+def interpolation_13(AA, AA1):
 	#A_new, A0_new, A1_new, A1_MeanMat = deficiency_matrix(A, A1)
-	A0 = A
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A0 = np.copy(A)
 	A0[np.where(A1 == 0)] = 0
 
 	U = mysvd(np.matmul(A, A.T))
@@ -39,11 +44,14 @@ def interpolation_13(A, A1):
 	U1 = mysvd(np.matmul(A1, A1.T)) 
 	
 	TTU1TA1 = np.matmul(TMat.T, np.matmul(U1.T, A1))
-	Astar =  np.matmul(U, TTU1TA1)
-	
+	TTU0TA0 = np.matmul(TMat.T, np.matmul(U0.T, A0))
+	A1star =  np.matmul(U, TTU1TA1)
+	A0star =  np.matmul(U, TTU0TA0)
+
+
 	# for task 5
-	joint_length = Astar.shape[0]
-	frame_length = Astar.shape[1]
+	joint_length = A1star.shape[0]
+	frame_length = A1star.shape[1]
 
 	I = np.identity(frame_length)
 	IUT = np.kron(I, U.T)
@@ -51,9 +59,9 @@ def interpolation_13(A, A1):
 	#print(np.where(A1 == 0))
 	#print(Astar[np.where(A1 == 0)])
 
-	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
-
-	return A1.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
+	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
+	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
+	return A1.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1), A0.T
 
 def interpolation_24(A, A1):
 	#A_new, A0_new, A1_new, A1_MeanMat= deficiency_matrix(A, A1)
@@ -100,6 +108,22 @@ def random_drop_joint(A, num_drop=[3, 5]):
 '''
 
 
+def calculate_mse(X, Y):
+	mse = (np.square(X - Y)).mean()
+	print(X)
+	print("check")
+	print(Y)
+	return mse
 
 
-
+def get_random_joint(A, length, num_joint_missing):
+	number_frame_missing = 5
+	AA = np.copy(A)
+	l = [x for x in range(length)]
+	missing_frame_arr = random.sample(l, number_frame_missing)
+	for x in missing_frame_arr:
+		for xx in range(num_joint_missing):
+			indices = random.randint(0, 24)
+			AA[indices*2, x] = 0
+			AA[indices*2+1, x] = 0
+	return AA
