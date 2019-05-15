@@ -18,19 +18,24 @@ if __name__ == '__main__':
 
 
 	# method 1
+	resultA1 = []
+	resultA0 = []
 	for current_frame_shift in arg.shift_arr:
+		tmpA1 = []
+		tmpA0 = []
 		for num_missing in arg.missing_joint:
-			print("A",arg.reference[0], arg.reference[0]+arg.length)
-			print("A1",arg.reference[0]+current_frame_shift,arg.reference[0]+arg.length+current_frame_shift)
-			A = Tracking2D[arg.reference[0]:arg.reference[0]+arg.length].T
-			A1 = Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift].T
-			# print(A1)
-			# print("check")
-			A1 = get_random_joint(A1, arg.length, num_missing)
-			# print(A1)
-			A_star_13, IUT, TTU1TA1R, A0_star_13 = interpolation_13(A, A1)
-			print("A1", calculate_mse(A_star_13, A1.T))
-			print("A0", calculate_mse(A0_star_13, A.T))
+			A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length].T)
+			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift].T)
+			A1zero = get_random_joint(A1, arg.length, num_missing)
+			A_star_13, IUT, TTU1TA1R, A0_star_13 = interpolation_13(A, A1zero)
+			tmpA1.append(calculate_mse(A1, np.around(A_star_13.T, decimals = 3)))
+			tmpA0.append(calculate_mse(A, np.around(A0_star_13.T, decimals = 3)))
+			break
+		resultA1.append(tmpA1)
+		resultA0.append(tmpA0)
+		break
+	print(resultA1)
+	print(resultA0)
 	########################
 
 	###### Task 2-4 ########

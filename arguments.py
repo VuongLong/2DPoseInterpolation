@@ -8,7 +8,7 @@ class arguments(argparse.Namespace):
 	data_dir = './data1/04_0_BogMue.data'
 	#task 1 3
 	reference  = [0, 507]
-	length = 20
+	length = 5
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
 	missing_joint = [1, 2, 3, 4, 5]
 	#task 2 4
