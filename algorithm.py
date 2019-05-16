@@ -27,15 +27,11 @@ def deficiency_matrix(AA, AA1):
 	A0 = A
 	A0_new = A0 - A_MeanMat
 	A0_new[np.where(A1 == 0)] = 0
-	return A_new, A0_new, A1_new, A1_MeanMat
+	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A_MeanMat.T
 
 
 def interpolation_13(AA, AA1):
-	#A_new, A0_new, A1_new, A1_MeanMat = deficiency_matrix(A, A1)
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A0 = np.copy(A)
-	A0[np.where(A1 == 0)] = 0
+	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA1)
 
 	U = mysvd(np.matmul(A, A.T))
 	U0 = mysvd(np.matmul(A0, A0.T)) 
@@ -48,6 +44,8 @@ def interpolation_13(AA, AA1):
 	A1star =  np.matmul(U, TTU1TA1)
 	A0star =  np.matmul(U, TTU0TA0)
 
+	A1star = A1star + A1_MeanMat
+	A0star = A0star + A0_MeanMat
 
 	# for task 5
 	joint_length = A1star.shape[0]
@@ -56,12 +54,14 @@ def interpolation_13(AA, AA1):
 	I = np.identity(frame_length)
 	IUT = np.kron(I, U.T)
 
-	#print(np.where(A1 == 0))
-	#print(Astar[np.where(A1 == 0)])
+	A1 = A1 + A1_MeanMat
+	A0 = A0 + A0_MeanMat
 
 	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
 	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
-	return A1.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1), A0.T
+
+	return A1.T, A0.T
+
 
 def interpolation_24(A, A1):
 	#A_new, A0_new, A1_new, A1_MeanMat= deficiency_matrix(A, A1)
@@ -87,32 +87,12 @@ def interpolation_24(A, A1):
 	A1[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
 	return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
 
-# AX=B
-def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR):
-	A = np.concatenate((IUT, VTI), axis=0)
-	B = np.concatenate((TTU1TA1R, A1V1FR), axis=0)
-	X = np.linalg.lstsq(A, B)
-	A1 = X[0].reshape(A1.shape[0],A1.shape[1])
-	return A1.T
-
-'''
-def random_drop_joint(A, num_drop=[3, 5]):
-	dims = A.shape
-	A = A.reshape(dims[0], 25, int(dims[1] / 25))
-	for i in range(dims[0]):
-		drop = np.random.randint(num_drop[0]) + num_drop[1] - num_drop[0] + 1
-		indices = np.random.randint(25, size=drop)
-		for idx in indices:
-			A[i, idx] = 0
-	return A
-'''
-
 
 def calculate_mse(X, Y):
 	mse = (np.square(X - Y)).mean()
-	print(X)
-	print("check")
-	print(Y)
+	#print(X)
+	#print("check")
+	#print(Y)
 	return mse
 
 
@@ -124,6 +104,6 @@ def get_random_joint(A, length, num_joint_missing):
 	for x in missing_frame_arr:
 		for xx in range(num_joint_missing):
 			indices = random.randint(0, 24)
-			AA[indices*2, x] = 0
-			AA[indices*2+1, x] = 0
+			AA[x, indices*2] = 0
+			AA[x, indices*2+1] = 0
 	return AA

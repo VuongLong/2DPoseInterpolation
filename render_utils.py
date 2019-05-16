@@ -43,7 +43,7 @@ def contruct_skeletion_to_image(fullfilenames, Tracking2D):
 def contruct_skeletion_to_video(input_dir, Tracking2D, target, output_dir, output_video='output', ingore_confidence=False):
 	print(input_dir + '/images')
 	files = os.listdir(input_dir + '/images')
-	print(files.sort()) 
+	files.sort()
 	image_file = input_dir + '/images/' + files[0]
 	img = cv2.imread(image_file)
 	video = cv2.VideoWriter(output_dir + '/' + output_video + '.avi', cv2.VideoWriter_fourcc(*'XVID'), 30, (img.shape[1], img.shape[0]))
@@ -63,7 +63,7 @@ def contruct_skeletion_to_video(input_dir, Tracking2D, target, output_dir, outpu
 	video.release()
 
 
-def show_video(video_dir, wait_key=25):
+def show_video(video_dir, wait_key=100):
 	cap = cv2.VideoCapture(video_dir + '.avi')
 	while(True):
 		ret,frame = cap.read()#capture one frame

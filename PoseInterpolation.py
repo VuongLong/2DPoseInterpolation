@@ -24,18 +24,26 @@ if __name__ == '__main__':
 		tmpA1 = []
 		tmpA0 = []
 		for num_missing in arg.missing_joint:
-			A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length].T)
-			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift].T)
+			# dim1 = frame, dim2 = joint
+			A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length])
+			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift])
+
 			A1zero = get_random_joint(A1, arg.length, num_missing)
-			A_star_13, IUT, TTU1TA1R, A0_star_13 = interpolation_13(A, A1zero)
-			tmpA1.append(calculate_mse(A1, np.around(A_star_13.T, decimals = 3)))
-			tmpA0.append(calculate_mse(A, np.around(A0_star_13.T, decimals = 3)))
+			A1_star_13, A0_star_13 = interpolation_13(A, A1zero)
+
+			print(A1-A1_star_13)
+			tmpA1.append(np.around(calculate_mse(A1, A1_star_13), decimals = 3))
+			tmpA0.append(np.around(calculate_mse(A, A0_star_13), decimals = 3))
 			break
 		resultA1.append(tmpA1)
 		resultA0.append(tmpA0)
+		print(resultA1, resultA0)
 		break
-	print(resultA1)
-	print(resultA0)
+	target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
+
+	contruct_skeletion_to_video(arg.input_dir, A1_star_13, target, arg.output_dir, arg.output_video, arg.ingore_confidence)	
+	show_video(arg.output_dir + '/' + arg.output_video, 200)
+
 	########################
 
 	###### Task 2-4 ########
@@ -52,5 +60,4 @@ if __name__ == '__main__':
 	#print(A_star_5.shape)	
 	########################
 	
-	# contruct_skeletion_to_video(arg.input_dir, A_star_5, arg.target, arg.output_dir, arg.output_video, arg.ingore_confidence)	
-	# show_video(arg.output_dir + '/' + arg.output_video, 200)
+	
