@@ -26,8 +26,12 @@ if __name__ == '__main__':
 			# dim1 = frame, dim2 = joint
 			A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length])
 			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift])
-
-			A1zero = get_random_joint(A1, arg.length, num_missing)
+			
+			# remove joint
+			# A1zero = get_random_joint(A1, arg.length, num_missing)
+			# remove whole piece
+			A1zero = get_removed_peice(A1, arg.length, num_missing)
+			
 			A1_star_13, A0_star_13 = interpolation_13(A, A1zero)
 			M1_tmpA1.append(np.around(calculate_mse(A1, A1_star_13), decimals = 3))
 			M1_tmpA0.append(np.around(calculate_mse(A, A0_star_13), decimals = 3))
@@ -41,12 +45,36 @@ if __name__ == '__main__':
 		M1_resultA0.append(M1_tmpA0)
 		M2_resultA1.append(M2_tmpA1)
 		M2_resultA0.append(M2_tmpA0)
-	print('M1', M1_resultA1, M1_resultA0)
-	print('M2', M2_resultA1, M2_resultA0)
 
-	target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
+
+	print('M1 A1', M1_resultA1, "A0", M1_resultA0)
+	print('M2 A1', M2_resultA1, "A0", M2_resultA0)
+
+
+
+	# target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
 
 	#contruct_skeletion_to_video(arg.input_dir, A1_star_13, target, arg.output_dir, arg.output_video, arg.ingore_confidence)	
 	#show_video(arg.output_dir + '/' + arg.output_video, 200)
 
+	# export to excel file 
+
+	# import xlwt 
+	# from xlwt import Workbook 
+	  
+	# # Workbook is created 
+	# wb = Workbook() 
+	  
+	# # add_sheet is used to create sheet. 
+	# sheet1 = wb.add_sheet('Sheet 1') 
+	# for x in range(5):
+	# 	for y in range(7):
+	# 		sheet1.write(x, y*2, M1_resultA0[y][x]) 
+	# 		sheet1.write(x, y*2+1, M1_resultA1[y][x]) 
 	
+	# for x in range(5):
+	# 	for y in range(7):
+	# 		sheet1.write(x+10, y*2, M2_resultA0[y][x]) 
+	# 		sheet1.write(x+10, y*2+1, M2_resultA1[y][x]) 
+
+	# wb.save('xlwt example.xls') 

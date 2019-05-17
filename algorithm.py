@@ -118,3 +118,13 @@ def get_random_joint(A, length, num_joint_missing):
 			AA[x, indices*2] = 0
 			AA[x, indices*2+1] = 0
 	return AA
+
+
+def get_removed_peice(A, length, number_frame_missing):
+	AA = np.copy(A)
+	l = [x for x in range(length)]
+	missing_frame_arr = random.sample(l, number_frame_missing)
+	for x in missing_frame_arr:
+		for i in range(AA[x].size):
+			AA[x][i] = 0
+	return AA
