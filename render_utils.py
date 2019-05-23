@@ -3,7 +3,8 @@ import argparse
 import sys
 import cv2
 import os
-
+import xlwt 
+from xlwt import Workbook
 
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [0, 255, 255], \
 		  [85, 0, 255], [0, 255, 0], [255, 0, 170], [255, 0, 0], [0, 255, 255], \
@@ -76,7 +77,23 @@ def show_video(video_dir, wait_key=100):
 	cv2.destroyAllWindows()
 
 
+def export_xls(M1_result1, M1_result2):
+	# Workbook is created 
+	wb = Workbook() 
 
+	# add_sheet is used to create sheet. 
+	sheet1 = wb.add_sheet('Sheet 1') 
+	for x in range(5):
+		for y in range(7):
+			sheet1.write(x, y*2, M1_result1[y][x]) 
+			sheet1.write(x, y*2+1, M1_result2[y][x]) 
+
+	# for x in range(5):
+	# 	for y in range(7):
+	# 		sheet1.write(x+10, y*2, M2_resultA0[y][x]) 
+	# 		sheet1.write(x+10, y*2+1, M2_resultA1[y][x]) 
+
+	wb.save('xlwt example.xls')
 
 
 

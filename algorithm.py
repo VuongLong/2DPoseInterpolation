@@ -30,6 +30,8 @@ def deficiency_matrix(AA, AA1):
 	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A_MeanMat.T
 
 
+
+
 def interpolation_13(AA, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA1)
 
@@ -53,6 +55,56 @@ def interpolation_13(AA, AA1):
 
 	I = np.identity(frame_length)
 	IUT = np.kron(I, U.T)
+
+	A1 = A1 + A1_MeanMat
+	A0 = A0 + A0_MeanMat
+
+	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
+	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
+
+	return A1.T, A0.T
+
+def deficiency_matrix3(AA, AA0, AA1):
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A_MeanVec = np.mean(A, 0)
+	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
+	A_new = A - A_MeanMat
+	
+	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
+	# print("check", (A1 != 0).sum(0))
+	#colMean = a.sum(0) / (a != 0).sum(0)
+	#rowMean = a.sum(1) / (a != 0).sum(1)  
+	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
+	A1_new = A1 - A1_MeanMat
+	A1_new[np.where(A1 == 0)] = 0
+	
+	A0 = np.copy(AA0)
+	A0_MeanVec = np.mean(A0, 0)
+	A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
+	A0_new = A0 - A0_MeanMat
+	A0_new[np.where(A1 == 0)] = 0
+	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
+
+
+
+
+def interpolation_3(AA, AA0, AA1):
+	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix3(AA, AA0, AA1)
+
+	U = mysvd(np.matmul(A, A.T))
+	U0 = mysvd(np.matmul(A0, A0.T)) 
+	TMat = np.matmul(U0.T, U)  #U = U0TMat
+		
+	U1 = mysvd(np.matmul(A1, A1.T)) 
+	
+	TTU1TA1 = np.matmul(TMat.T, np.matmul(U1.T, A1))
+	TTU0TA0 = np.matmul(TMat.T, np.matmul(U0.T, A0))
+	A1star =  np.matmul(U, TTU1TA1)
+	A0star =  np.matmul(U, TTU0TA0)
+
+	A1star = A1star + A1_MeanMat
+	A0star = A0star + A0_MeanMat
 
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
@@ -118,3 +170,13 @@ def get_random_joint(A, length, num_joint_missing):
 			AA[x, indices*2] = 0
 			AA[x, indices*2+1] = 0
 	return AA
+
+
+def get_removed_peice(A, length, number_frame_missing):
+	AA = np.copy(A)
+	l = [x for x in range(length)]
+	missing_frame_arr = random.sample(l, number_frame_missing)
+	for x in missing_frame_arr:
+		for i in range(AA[x].size):
+			AA[x][i] = 0
+	return AA 
