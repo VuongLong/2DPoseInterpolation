@@ -8,14 +8,17 @@ if __name__ == '__main__':
 
 	Tracking2D  = read_tracking_data(arg.data_dir, arg.ingore_confidence)
 	Tracking2D = Tracking2D.astype(float)
+	full_list = find_full_matrix(Tracking2D, 20)
+	print(full_list)
 	# method 1
+
 	M1_resultA1 = []
 	M1_resultA0 = []
 	# method 2
 	M2_resultA1 = []
 	M2_resultA0 = []
 	# A_N = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.AN_length]) 	# this code for task 3 method 1
-	for current_frame_shift in arg.shift_arr:
+	for current_frame_shift in range (arg.length+1):
 		M1_tmpA1 = []
 		M1_tmpA0 = []
 		M2_tmpA1 = []

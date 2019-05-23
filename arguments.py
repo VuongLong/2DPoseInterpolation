@@ -8,7 +8,7 @@ class arguments(argparse.Namespace):
 	# data_dir = './data1/04_0_BogMue.data'
 	data_dir = input_dir + '/' + output_video + ".data"
 	#task 1 3
-	reference  = [17, 507]
+	reference  = [477, 497]
 	length = 20
 	AN_length = 50
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
