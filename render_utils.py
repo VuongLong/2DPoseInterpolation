@@ -5,6 +5,8 @@ import cv2
 import os
 import xlwt 
 from xlwt import Workbook
+import matplotlib.pyplot as plt
+
 
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [0, 255, 255], \
 		  [85, 0, 255], [0, 255, 0], [255, 0, 170], [255, 0, 0], [0, 255, 255], \
@@ -17,6 +19,8 @@ pose = [(0, 1), (1, 2), (1, 8), (2, 3), (3, 4), (1, 5), (5, 6), (6, 7), (0, 15),
 		(22, 23), (11, 24), (12, 13), (13, 14), (14, 21), (14, 19), (19, 20)]
 
 draw_colors = [0, 1, 14, 3, 4, 5, 3, 4, 8, 9, 10, 11, 12, 11, 0, 15, 22, 23, 18, 0, 15, 18, 22, 23]
+
+color_plot = ['g', 'r', 'y', 'b', 'k' , 'c']
 
 
 def drawline(img,a,b,Xs,Ys,c):
@@ -77,26 +81,41 @@ def show_video(video_dir, wait_key=100):
 	cv2.destroyAllWindows()
 
 
-def export_xls(M1_result1, M1_result2):
+def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None):
 	# Workbook is created 
 	wb = Workbook() 
-
+	tmp = np.array(M1_result1).shape
+	print(tmp)
 	# add_sheet is used to create sheet. 
 	sheet1 = wb.add_sheet('Sheet 1') 
-	for x in range(5):
-		for y in range(7):
+	for x in range(tmp[1]):
+		for y in range(tmp[0]):
 			sheet1.write(x, y*2, M1_result1[y][x]) 
 			sheet1.write(x, y*2+1, M1_result2[y][x]) 
 
-	# for x in range(5):
-	# 	for y in range(7):
-	# 		sheet1.write(x+10, y*2, M2_resultA0[y][x]) 
-	# 		sheet1.write(x+10, y*2+1, M2_resultA1[y][x]) 
+	if (M2_result1 != None):
+		for x in range(tmp[1]):
+			for y in range(tmp[0]):
+				sheet1.write(x+10, y*2, M2_result1[y][x]) 
+				sheet1.write(x+10, y*2+1, M2_result2[y][x]) 
 
 	wb.save('xlwt example.xls')
 
+def plot_line(M1_result1, M1_result2, title):
+	fig = plt.figure()
+	fig.suptitle(title, fontsize=10)
+	tmp = np.copy(np.array(M1_result1).T)
+	plt.subplot(211)
+	for idx, x in enumerate(tmp):
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="shift frame"+str(idx))
+	plt.legend(loc = 0, mode="expand", ncol= 2)
+	plt.ylabel('Error A0')
 
-
-
-
-
+	tmp = np.copy(np.array(M1_result2).T)
+	plt.subplot(212)
+	for idx, x in enumerate(tmp):
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0)
+	plt.xlabel('Number missing joint')
+	plt.ylabel('Error A1')
+	plt.show()
+	fig.savefig(title+'.jpg')
