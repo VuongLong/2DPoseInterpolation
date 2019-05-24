@@ -33,25 +33,28 @@ def deficiency_matrix(AA, AA1):
 
 	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
 
-#def deficiency_matrix(AA, AA1):
-#	A = np.copy(AA)
-#	A1 = np.copy(AA1)
-#	A_MeanVec = np.mean(A, 0)
-#	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
-#	A_new = A - A_MeanMat
-#	
-#	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
-#	#colMean = a.sum(0) / (a != 0).sum(0)
-#	#rowMean = a.sum(1) / (a != 0).sum(1)  
-#	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
-#	A1_new = A1 - A1_MeanMat
-#	A1_new[np.where(A1 == 0)] = 0
-#	
-#	A0 = A
-#	A0_new = A0 - A_MeanMat
-#	A0_new[np.where(A1 == 0)] = 0
-#	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A_MeanMat.T
 
+def deficiency_matrix3(AA, AA0, AA1):
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A_MeanVec = np.mean(A, 0)
+	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
+	A_new = A - A_MeanMat
+	
+	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
+	# print("check", (A1 != 0).sum(0))
+	#colMean = a.sum(0) / (a != 0).sum(0)
+	#rowMean = a.sum(1) / (a != 0).sum(1)  
+	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
+	A1_new = A1 - A1_MeanMat
+	A1_new[np.where(A1 == 0)] = 0
+	
+	A0 = np.copy(AA0)
+	A0_MeanVec = np.mean(A0, 0)
+	A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
+	A0_new = A0 - A0_MeanMat
+	A0_new[np.where(A1 == 0)] = 0
+	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
 
 
 def interpolation_13(AA, AA1):
@@ -79,29 +82,6 @@ def interpolation_13(AA, AA1):
 	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
 
 	return A1.T, A0.T
-
-def deficiency_matrix3(AA, AA0, AA1):
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A_MeanVec = np.mean(A, 0)
-	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
-	A_new = A - A_MeanMat
-	
-	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
-	# print("check", (A1 != 0).sum(0))
-	#colMean = a.sum(0) / (a != 0).sum(0)
-	#rowMean = a.sum(1) / (a != 0).sum(1)  
-	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
-	A1_new = A1 - A1_MeanMat
-	A1_new[np.where(A1 == 0)] = 0
-	
-	A0 = np.copy(AA0)
-	A0_MeanVec = np.mean(A0, 0)
-	A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
-	A0_new = A0 - A0_MeanMat
-	A0_new[np.where(A1 == 0)] = 0
-	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
-
 
 
 
@@ -134,9 +114,6 @@ def interpolation_3(AA, AA0, AA1):
 def interpolation_24(AA, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA1)
 
-	A0 = A
-	A0[np.where(A1 == 0)] = 0
-
 	V = mysvd(np.matmul(A.T, A)) 
 	V0 = mysvd(np.matmul(A0.T, A0)) 
 	F = np.matmul(V0.T, V)
@@ -151,13 +128,6 @@ def interpolation_24(AA, AA1):
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
 
-	# for task 5
-	joint_length = A1star.shape[0]
-	frame_length = A1star.shape[1]
-
-	I = np.identity(joint_length)
-	VTI = np.kron(V.T, I)
-
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
 
@@ -166,6 +136,34 @@ def interpolation_24(AA, AA1):
 	#return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
 	return A1.T, A0.T
 
+def interpolation_4(AA, AA0, AA1):
+	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix3(AA, AA0, AA1)
+	print(A.shape)
+	print(A0.shape)
+	print(A1.shape)
+	V = mysvd(np.matmul(A.T, A)) 
+	V0 = mysvd(np.matmul(A0.T, A0)) 
+	print(V.shape)
+	print(V0.shape)
+	F = np.matmul(V0.T, V)
+		
+	V1 = mysvd(np.matmul(A1.T, A1))
+
+	A1V1F = np.matmul(np.matmul(A1, V1), F)
+	A0V0F = np.matmul(np.matmul(A0, V0), F)
+	A1star =  np.matmul(A1V1F, V.T)
+	A0star =  np.matmul(A0V0F, V.T)
+
+	A1star = A1star + A1_MeanMat
+	A0star = A0star + A0_MeanMat
+
+	A1 = A1 + A1_MeanMat
+	A0 = A0 + A0_MeanMat
+
+	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
+	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
+	#return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
+	return A1.T, A0.T
 
 def calculate_mse(X, Y):
 	mse = (np.square(X - Y)).mean()
