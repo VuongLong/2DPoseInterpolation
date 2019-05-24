@@ -84,17 +84,18 @@ def show_video(video_dir, wait_key=100):
 def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None):
 	# Workbook is created 
 	wb = Workbook() 
-
+	tmp = np.array(M1_result1).shape
+	print(tmp)
 	# add_sheet is used to create sheet. 
 	sheet1 = wb.add_sheet('Sheet 1') 
-	for x in range(5):
-		for y in range(7):
+	for x in range(tmp[1]):
+		for y in range(tmp[0]):
 			sheet1.write(x, y*2, M1_result1[y][x]) 
 			sheet1.write(x, y*2+1, M1_result2[y][x]) 
 
 	if (M2_result1 != None):
-		for x in range(5):
-			for y in range(7):
+		for x in range(tmp[1]):
+			for y in range(tmp[0]):
 				sheet1.write(x+10, y*2, M2_result1[y][x]) 
 				sheet1.write(x+10, y*2+1, M2_result2[y][x]) 
 

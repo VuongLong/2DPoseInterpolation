@@ -30,8 +30,8 @@ if __name__ == '__main__':
 			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift]) # this code for task 2, the below one is using for task3
 			# A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+5:arg.reference[0]+arg.length+current_frame_shift+5])
 
-			A1zero = get_random_joint(A1, arg.length, num_missing)
-			# A1zero = get_removed_peice(A1, arg.length, num_missing)
+			#A1zero = get_random_joint(A1, arg.length, num_missing)
+			A1zero = get_removed_peice(A1, arg.length, num_missing)
 
 
 			A1_star_13, A0_star_13 = interpolation_13(A ,A1zero)
@@ -45,6 +45,7 @@ if __name__ == '__main__':
 		M1_resultA0.append(M1_tmpA0)
 		M2_resultA1.append(M2_tmpA1)
 		M2_resultA0.append(M2_tmpA0)
+	print(np.array(M1_resultA1).shape)
 	print('M11', M1_resultA1, 'M10', M1_resultA0)
 	print('M21', M2_resultA1, 'M20', M2_resultA0)
 
