@@ -85,7 +85,6 @@ def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None):
 	# Workbook is created 
 	wb = Workbook() 
 	tmp = np.array(M1_result1).shape
-	print(tmp)
 	# add_sheet is used to create sheet. 
 	sheet1 = wb.add_sheet('Sheet 1') 
 	for x in range(tmp[1]):
@@ -107,9 +106,12 @@ def plot_line(M1_result1, M1_result2, title):
 	tmp = np.copy(np.array(M1_result1).T)
 	plt.subplot(211)
 	for idx, x in enumerate(tmp):
-	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number of missing joint"+str(idx))
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing joint"+str(idx))
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel('Error A0')
+	print(plt.ylim())
+	plt.ylim((0, 6))
+
 
 	tmp = np.copy(np.array(M1_result2).T)
 	plt.subplot(212)
@@ -117,5 +119,7 @@ def plot_line(M1_result1, M1_result2, title):
 	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0)
 	plt.xlabel('Number shifted frame')
 	plt.ylabel('Error A1')
+	print(plt.ylim())
+	plt.ylim((0, 6))
 	plt.show()
 	fig.savefig(title+'.jpg')
