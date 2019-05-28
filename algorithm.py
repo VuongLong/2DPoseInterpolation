@@ -175,7 +175,8 @@ def calculate_mse(X, Y):
 
 
 def get_random_joint(A, length, num_joint_missing):
-	number_frame_missing = 5
+	print(A.shape)
+	number_frame_missing = 15
 	AA = np.copy(A)
 	l = [x for x in range(length)]
 	missing_frame_arr = random.sample(l, number_frame_missing)

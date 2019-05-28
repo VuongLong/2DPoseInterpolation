@@ -29,14 +29,14 @@ if __name__ == '__main__':
 
 	# A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length]) # this code for task 1&2, the below one is using for task3
 	# A = np.copy(Tracking2D[arg.reference[0]+5:arg.reference[0]+arg.length+5])  # this code for task 3, the below one is uisng for task 4
-	A = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.length]) # this code for task 4
+	A = np.copy(Tracking2D[arg.reference[0]+10:arg.reference[0]+arg.length+10]) # this code for task 4
 	for current_frame_shift in range (arg.length+1):
 		M1_tmpA1 = []
 		M1_tmpA0 = []
 		# M2_tmpA1 = []
 		# M2_tmpA0 = []
 		for num_missing in arg.missing_joint:
-			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift:arg.reference[0]+arg.length+current_frame_shift]) # this code for task 1&2, the below one is using for task3
+			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+201:arg.reference[0]+arg.length+current_frame_shift+201]) # this code for task 1&2, the below one is using for task3
 			# A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+5:arg.reference[0]+arg.length+current_frame_shift+5])
 
 			A1zero = get_random_joint(A1, arg.length, num_missing)
@@ -63,8 +63,8 @@ if __name__ == '__main__':
 	#show_video(arg.output_dir + '/' + arg.output_video, 200)
 
 	# export_xls(M1_resultA0, M1_resultA1, M2_resultA0, M2_resultA1)
-	export_xls(M1_resultA0, M1_resultA1)
-	plot_line(M1_resultA0, M1_resultA1, "Task1")
+	export_xls(M1_resultA0, M1_resultA1, file_name = "Task4_joint")
+	plot_line(M1_resultA0, M1_resultA1, "Task4_joint")
 	# plot_line(M2_resultA0, M2_resultA1, "Task2")
 
 
