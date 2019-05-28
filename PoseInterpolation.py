@@ -55,8 +55,8 @@ if __name__ == '__main__':
 	#show_video(arg.output_dir + '/' + arg.output_video, 200)
 
 	#export_xls(M1_resultA0, M1_resultA1, M2_resultA0, M2_resultA1)
-	export_xls(M1_resultA0, M1_resultA1)
-	plot_line(M1_resultA0, M1_resultA1, "Task3")
+	export_xls(M1_resultA0, M1_resultA1, file_name = "Task3_joint_70_20")
+	plot_line(M1_resultA0, M1_resultA1, "Task3_joint_70_20")
 	#plot_line(M2_resultA0, M2_resultA1, "Task2")
 
 
