@@ -53,10 +53,18 @@ def interpolation_13(AA, AA0, AA1):
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
 
+	#  for task 5
+
+	joint_length = A1star.shape[0]
+	frame_length = A1star.shape[1]
+
+	I = np.identity(frame_length)
+	IUT = np.kron(I, U.T)
+
 	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
 	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
 
-	return A1.T, A0.T
+	return A1.T, A0.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
 
 
 def interpolation_24(AA, AA0, AA1):
@@ -79,10 +87,27 @@ def interpolation_24(AA, AA0, AA1):
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
 
+	# for task 5
+
+	joint_length = A1star.shape[0]
+	frame_length = A1star.shape[1]
+
+	I = np.identity(joint_length)
+	VTI = np.kron(V.T, I)
+
 	A1[np.where(A1 == 0)] = A1star[np.where(A1 == 0)]
 	A0[np.where(A0 == 0)] = A0star[np.where(A0 == 0)]
 	#return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
-	return A1.T, A0.T
+	return A1.T, A0.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
+
+
+def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR):
+	A = np.concatenate((IUT, VTI), axis=0)
+	B = np.concatenate((TTU1TA1R, A1V1FR), axis=0)
+	X = np.linalg.lstsq(A, B)
+	A1 = X[0].reshape(A1.shape[0],A1.shape[1])
+	return A1.T
+
 
 def calculate_mse(X, Y):
 	mse = (np.square(X - Y)).mean()
