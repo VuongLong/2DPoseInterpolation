@@ -9,7 +9,7 @@ class arguments(argparse.Namespace):
 	data_dir = input_dir + '/' + output_video + ".data"
 	#task 1 3
 	reference  = [0, 497]
-	length = 10
+	length = 20
 	AN_length = 50
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
 	missing_joint = [1, 2, 3, 4, 5]
