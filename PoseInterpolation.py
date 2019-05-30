@@ -25,11 +25,11 @@ def process_hub(method = 1, joint = True):
 		for x in arg.reference_task4:
 			tmp = np.copy(Tracking2D[x[0]:x[1]])
 			if A_N.shape[0] != 0:
-				A_N = np.concatenate((A_N, tmp), axis = 0)
+				A_N = np.concatenate((A_N, tmp), axis = 1)
 			else:
 				A_N = np.copy(tmp)
 
-
+	print(A_N.shape)
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
 	for current_frame_shift in range (arg.length+1):
 		tmpA1 = []
@@ -45,13 +45,13 @@ def process_hub(method = 1, joint = True):
 				A1zero = get_removed_peice(A1, arg.length, num_missing)
 
 			if method == 1:
-				A1_star, A0_star = interpolation_13(A ,A1zero)
+				A1_star, A0_star = interpolation_13(A, A ,A1zero)
 			elif method == 2:
-				A1_star, A0_star = interpolation_24(A, A1zero)
+				A1_star, A0_star = interpolation_24(A, A, A1zero)
 			elif method == 3:
-				A1_star, A0_star = interpolation_3(A_N, A ,A1zero)
+				A1_star, A0_star = interpolation_13(A_N, A ,A1zero)
 			else:
-				A1_star, A0_star = interpolation_4(A_N, A ,A1zero)
+				A1_star, A0_star = interpolation_24(A_N, A ,A1zero)
 
 			tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
 			tmpA0.append(np.around(calculate_mse(A, A0_star), decimals = 3))
