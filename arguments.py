@@ -5,7 +5,7 @@ class arguments(argparse.Namespace):
 	input_dir = './data2'
 	output_dir = './output' 
 	output_video = 'ChuckPangPadNha_2'
-	# data_dir = './data1/04_0_BogMue.data'
+	# data_dir = './data1/04_0_BogMue.data' #'ChuckPangPadNha_2'
 	data_dir = input_dir + '/' + output_video + ".data"
 	#task 1 3
 	reference  = [0, 497]

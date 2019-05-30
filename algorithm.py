@@ -33,27 +33,6 @@ def deficiency_matrix(AA, AA1):
 
 	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
 
-#def deficiency_matrix(AA, AA1):
-#	A = np.copy(AA)
-#	A1 = np.copy(AA1)
-#	A_MeanVec = np.mean(A, 0)
-#	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
-#	A_new = A - A_MeanMat
-#	
-#	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
-#	#colMean = a.sum(0) / (a != 0).sum(0)
-#	#rowMean = a.sum(1) / (a != 0).sum(1)  
-#	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
-#	A1_new = A1 - A1_MeanMat
-#	A1_new[np.where(A1 == 0)] = 0
-#	
-#	A0 = A
-#	A0_new = A0 - A_MeanMat
-#	A0_new[np.where(A1 == 0)] = 0
-#	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A_MeanMat.T
-
-
-
 def interpolation_13(AA, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA1)
 
@@ -176,7 +155,7 @@ def calculate_mse(X, Y):
 
 
 def get_random_joint(A, length, num_joint_missing):
-	number_frame_missing = 5
+	number_frame_missing = 15
 	AA = np.copy(A)
 	l = [x for x in range(length)]
 	missing_frame_arr = random.sample(l, number_frame_missing)

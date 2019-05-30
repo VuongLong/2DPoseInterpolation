@@ -81,7 +81,7 @@ def show_video(video_dir, wait_key=100):
 	cv2.destroyAllWindows()
 
 
-def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None):
+def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None, file_name="default"):
 	# Workbook is created 
 	wb = Workbook() 
 	tmp = np.array(M1_result1).shape
@@ -98,23 +98,28 @@ def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None):
 				sheet1.write(x+10, y*2, M2_result1[y][x]) 
 				sheet1.write(x+10, y*2+1, M2_result2[y][x]) 
 
-	wb.save('xlwt example.xls')
+	wb.save(str(file_name)+'.xls')
 
-def plot_line(M1_result1, M1_result2, title):
+def plot_line(M1_result1, M1_result2, title, type = "joint"):
 	fig = plt.figure()
 	fig.suptitle(title, fontsize=10)
 	tmp = np.copy(np.array(M1_result1).T)
 	plt.subplot(211)
 	for idx, x in enumerate(tmp):
-	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="shift frame"+str(idx))
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+str(idx))
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel('Error A0')
+	print(plt.ylim())
+	plt.ylim((0, 16))
+
 
 	tmp = np.copy(np.array(M1_result2).T)
 	plt.subplot(212)
 	for idx, x in enumerate(tmp):
 	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0)
-	plt.xlabel('Number missing joint')
+	plt.xlabel('Number shifted frame')
 	plt.ylabel('Error A1')
+	print(plt.ylim())
+	plt.ylim((0, 16))
 	plt.show()
 	fig.savefig(title+'.jpg')
