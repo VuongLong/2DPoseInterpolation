@@ -33,7 +33,6 @@ def deficiency_matrix(AA, AA1):
 
 	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
 
-
 def deficiency_matrix3(AA, AA0, AA1):
 	A = np.copy(AA)
 	A1 = np.copy(AA1)
@@ -55,7 +54,6 @@ def deficiency_matrix3(AA, AA0, AA1):
 	A0_new = A0 - A0_MeanMat
 	A0_new[np.where(A1 == 0)] = 0
 	return A_new.T, A0_new.T, A1_new.T, A1_MeanMat.T, A0_MeanMat.T
-
 
 def interpolation_13(AA, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA1)
@@ -175,7 +173,6 @@ def calculate_mse(X, Y):
 
 
 def get_random_joint(A, length, num_joint_missing):
-	print(A.shape)
 	number_frame_missing = 15
 	AA = np.copy(A)
 	l = [x for x in range(length)]
