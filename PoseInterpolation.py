@@ -8,6 +8,7 @@ if __name__ == '__main__':
 
 	Tracking2D  = read_tracking_data(arg.data_dir, arg.ingore_confidence)
 	Tracking2D = Tracking2D.astype(float)
+	print(Tracking2D.shape)
 	full_list = find_full_matrix(Tracking2D, 20)
 	# print(full_list)
 	# method 1
@@ -36,7 +37,7 @@ if __name__ == '__main__':
 		# M2_tmpA1 = []
 		# M2_tmpA0 = []
 		for num_missing in arg.missing_joint:
-			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+201:arg.reference[0]+arg.length+current_frame_shift+201]) # this code for task 1&2, the below one is using for task3
+			A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+331:arg.reference[0]+arg.length+current_frame_shift+331]) # this code for task 1&2, the below one is using for task3
 			# A1 = np.copy(Tracking2D[arg.reference[0]+current_frame_shift+5:arg.reference[0]+arg.length+current_frame_shift+5])
 
 			A1zero = get_random_joint(A1, arg.length, num_missing)

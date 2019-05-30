@@ -110,7 +110,6 @@ def plot_line(M1_result1, M1_result2, title):
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel('Error A0')
 	print(plt.ylim())
-	plt.ylim((0, 21))
 
 
 	tmp = np.copy(np.array(M1_result2).T)
@@ -120,6 +119,5 @@ def plot_line(M1_result1, M1_result2, title):
 	plt.xlabel('Number shifted frame')
 	plt.ylabel('Error A1')
 	print(plt.ylim())
-	plt.ylim((0, 21))
 	plt.show()
 	fig.savefig(title+'.jpg')

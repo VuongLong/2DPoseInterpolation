@@ -143,24 +143,24 @@ def interpolation_4(AA, AA0, AA1):
 	F = np.matmul(V0.T, V)
 		
 	V1 = mysvd(np.matmul(A1, A1.T))
-	print("A", A1.shape)
-	print("V", V1.shape)
-	print("F", F.shape)
+	# print("A", A1.shape)
+	# print("V", V1.shape)
+	# print("F", F.shape)
 	A1V1F = np.matmul(np.matmul(A1.T, V1), F)
 	A0V0F = np.matmul(np.matmul(A0.T, V0), F)
 	A1star =  np.matmul(A1V1F, V.T)
 	A0star =  np.matmul(A0V0F, V.T)
 
-	print("A1*", A1star.shape)
-	print("A1Mean", A1_MeanMat.shape)
+	# print("A1*", A1star.shape)
+	# print("A1Mean", A1_MeanMat.shape)
 	A1star = A1star + A1_MeanMat.T
 	A0star = A0star + A0_MeanMat.T
 
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
-	print("comparision")
-	print(A1.shape)
-	print(A1star.shape)
+	# print("comparision")
+	# print(A1.shape)
+	# print(A1star.shape)
 	A1[np.where(A1 == 0)] = A1star.T[np.where(A1 == 0)]
 	A0[np.where(A0 == 0)] = A0star.T[np.where(A0 == 0)]
 	#return A1.T, VTI, A1V1F.reshape(joint_length*frame_length, 1)
