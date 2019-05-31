@@ -81,16 +81,21 @@ def show_video(video_dir, wait_key=100):
 	cv2.destroyAllWindows()
 
 
-def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None, file_name="default"):
+def export_xls(M1_result1, M1_result2, M1_result3 = None, M2_result1 = None, M2_result2 = None, file_name="default"):
 	# Workbook is created 
 	wb = Workbook() 
 	tmp = np.array(M1_result1).shape
 	# add_sheet is used to create sheet. 
 	sheet1 = wb.add_sheet('Sheet 1') 
+	space = 2
+	if M1_result3 != None:
+		space = 3
 	for x in range(tmp[1]):
 		for y in range(tmp[0]):
-			sheet1.write(x, y*2, M1_result1[y][x]) 
-			sheet1.write(x, y*2+1, M1_result2[y][x]) 
+			sheet1.write(x, y*space, M1_result1[y][x]) 
+			sheet1.write(x, y*space+1, M1_result2[y][x]) 
+			if M1_result3 != None:
+				sheet1.write(x, y*space+2, M1_result3[y][x])
 
 	if (M2_result1 != None):
 		for x in range(tmp[1]):
@@ -100,17 +105,17 @@ def export_xls(M1_result1, M1_result2, M2_result1 = None, M2_result2 = None, fil
 
 	wb.save(str(file_name)+'.xls')
 
-def plot_line(M1_result1, M1_result2, title, type = "joint"):
-	fig = plt.figure()
+def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0", name2 = "Error A1"):
+	fig = plt.figure(figsize=(20,10))
 	fig.suptitle(title, fontsize=10)
 	tmp = np.copy(np.array(M1_result1).T)
 	plt.subplot(211)
 	for idx, x in enumerate(tmp):
-	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+str(idx))
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+str(idx))
 	plt.legend(loc = 0, mode="expand", ncol= 2)
-	plt.ylabel('Error A0')
+	plt.ylabel(name1)
 	print(plt.ylim())
-	plt.ylim((0, 16))
+	plt.ylim((0, 30))
 
 
 	tmp = np.copy(np.array(M1_result2).T)
@@ -118,8 +123,8 @@ def plot_line(M1_result1, M1_result2, title, type = "joint"):
 	for idx, x in enumerate(tmp):
 	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0)
 	plt.xlabel('Number shifted frame')
-	plt.ylabel('Error A1')
+	plt.ylabel(name2)
 	print(plt.ylim())
-	plt.ylim((0, 16))
+	plt.ylim((0, 30))
 	plt.show()
 	fig.savefig(title+'.jpg')
