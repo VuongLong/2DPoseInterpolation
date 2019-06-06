@@ -108,9 +108,7 @@ def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 
 def calculate_mse(X, Y):
 	mse = (np.square(X - Y)).mean()
-	#print(X)
-	#print("check")
-	#print(Y)
+	mse = (np.sqrt(mse))
 	return mse
 
 
