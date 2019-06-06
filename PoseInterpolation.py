@@ -26,7 +26,15 @@ def process_hub(method = 1, joint = True):
 			A_N = np.copy(tmp)
 	A_N = np.copy(Tracking2D[arg.reference[0]+20:arg.reference[0]+arg.AN_length]+20)
 
+	
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
+	A_temp_zero = []
+	for num_missing in arg.missing_joint:
+		if joint:
+			A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
+		else:
+			A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
+
 	for current_frame_shift in range (arg.length+1):
 		tmpA1 = []
 		tmpA0 = []
@@ -35,10 +43,14 @@ def process_hub(method = 1, joint = True):
 			A1 = np.copy(
 				Tracking2D[arg.reference[0]+current_frame_shift+shift_A1_value:arg.reference[0]+arg.length+current_frame_shift+shift_A1_value]) 
 
-			if joint:
-				A1zero = get_random_joint(A1, arg.length, num_missing)
-			else:
-				A1zero = get_removed_peice(A1, arg.length, num_missing)
+			A1zero = np.copy(A1)
+			tmp = A_temp_zero[num_missing-1]
+			A1zero[np.where(A_temp_zero[num_missing-1] == 0)] = 0
+
+			# if joint:
+			# 	A1zero = get_random_joint(A1, arg.length, num_missing)
+			# else:
+			# 	A1zero = get_removed_peice(A1, arg.length, num_missing)
 
 			if method == 1:
 				A1_star, A0_star,_,_ = interpolation_13(A, A ,A1zero)
@@ -132,8 +144,8 @@ if __name__ == '__main__':
 	# full_list = find_full_matrix(Tracking2D, 20)
 	# print(full_list)
 	
-	#process_hub(method = 3, joint = True)
-	process_hub5(method = 5, joint = True)
+	process_hub(method = 1, joint = True)
+	# process_hub5(method = 5, joint = True)
 
 	#target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
 
