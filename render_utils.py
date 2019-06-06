@@ -115,7 +115,7 @@ def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0",
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel(name1)
 	print(plt.ylim())
-	plt.ylim((0, 30))
+	plt.ylim((0, 5))
 
 
 	tmp = np.copy(np.array(M1_result2).T)
@@ -125,6 +125,6 @@ def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0",
 	plt.xlabel('Number shifted frame')
 	plt.ylabel(name2)
 	print(plt.ylim())
-	plt.ylim((0, 30))
+	plt.ylim((0, 5))
 	plt.show()
 	fig.savefig(title+'.jpg')
