@@ -30,11 +30,19 @@ def deficiency_matrix(AA, AA0, AA1):
 	A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
 	A0_new = np.copy(A0 - A0_MeanMat)
 	A0_new[np.where(A1 == 0)] = 0
+
+	# A0_new1 = np.copy(A0[0:100, 0:50])
+	# A0_MeanMat = np.copy(A_MeanMat[0:100, 0:50]) 
+	# A0_new1[np.where(A1 == 0)] = 0	
+
+	# print(A0_new1.shape)
+	# print(A0_new.shape)
 	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T)
 
 
 def interpolation_13(AA, AA0, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1)
+	
 	U = mysvd(np.matmul(A, A.T))
 	U0 = mysvd(np.matmul(A0, A0.T)) 
 	TMat = np.matmul(U0.T, U)  #U = U0TMat
@@ -67,6 +75,7 @@ def interpolation_13(AA, AA0, AA1):
 
 def interpolation_24(AA, AA0, AA1):
 	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1)
+	
 	V = mysvd(np.matmul(A.T, A)) 
 	V0 = mysvd(np.matmul(A0.T, A0)) 
 	F = np.matmul(V0.T, V)

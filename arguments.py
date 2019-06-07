@@ -8,7 +8,7 @@ class arguments(argparse.Namespace):
 	# data_dir = './data1/04_0_BogMue.data' #'ChuckPangPadNha_2'
 	data_dir = input_dir + '/' + output_video + ".data"
 	
-	length = 50
+	length = 100
 	AN_length = 150
 	reference  = [0, 497]
 	reference_task4 = [[0, 50], [50, 100], [100, 150]]

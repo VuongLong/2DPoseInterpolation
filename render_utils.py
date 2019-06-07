@@ -111,7 +111,7 @@ def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0",
 	tmp = np.copy(np.array(M1_result1).T)
 	plt.subplot(211)
 	for idx, x in enumerate(tmp):
-	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+str(idx))
+	  plt.plot(x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+str(idx+1))
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel(name1)
 	print(plt.ylim())
