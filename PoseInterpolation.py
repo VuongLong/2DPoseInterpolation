@@ -97,7 +97,15 @@ def process_hub5(method = 1, joint = True):
 		else:
 			A_N = np.copy(tmp)
 	A_N3 = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.AN_length])
-	# A_N = np.copy(A_N3.T)
+	
+
+	tmp_meanVec = np.mean(A_N3,0)
+	A0_mean = np.tile(tmp_meanVec,(arg.length,1))
+	AN3_MeanMat = np.tile(tmp_meanVec, (A_N3.shape[0], 1))
+	# tmp_meanVecUnit = np.tile(tmp_meanVec, (arg.length, 1)).T
+	AN_MeanMat = np.tile(tmp_meanVec, (A_N3.shape[0], 1)).T
+
+
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
 	A_temp_zero = []
 	for num_missing in arg.missing_joint:
@@ -126,10 +134,12 @@ def process_hub5(method = 1, joint = True):
 			# else:
 			# 	A1zero = get_removed_peice(A1, arg.length, num_missing)
 			
-			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero), shift = check_shift)
+			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero), 
+																shift = check_shift, option = [AN3_MeanMat, tmp_meanVec])
 			tmpA3.append(np.around(calculate_mse(A1, A1_star3), decimals = 3))
 			# tmpA30.append(np.around(calculate_mse(A, A0_star3), decimals = 3))
-			A1_star4, A0_star4,VTI,A1V1FR,A1_MeanMat = interpolation_24(np.copy(A_N), np.copy(A) ,np.copy(A1zero), shift = check_shift)
+			A1_star4, A0_star4,VTI,A1V1FR,A1_MeanMat = interpolation_24(np.copy(A_N), np.copy(A) ,np.copy(A1zero), 
+																shift = check_shift, option = [AN_MeanMat, tmp_meanVec])
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 3))
 			# tmpA40.append(np.around(calculate_mse(A, A0_star4), decimals = 3))
 			# A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
@@ -143,7 +153,7 @@ def process_hub5(method = 1, joint = True):
 		# resultA30.append(tmpA30)
 		# resultA40.append(tmpA40)
 
-	# file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
+	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
 	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
 	plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
 	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)

@@ -10,22 +10,28 @@ def mysvd(dataMat):
 	return U
 
 
-def deficiency_matrix(AA, AA0, AA1, shift):
+def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 	A = np.copy(AA)
 	A1 = np.copy(AA1)
 	A0 = np.copy(AA0)
-	A0[np.where(A1 == 0)] = 0
 
-	A_MeanVec = np.mean(A, 0)
-	A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
-	A_new = np.copy(A - A_MeanMat)
+	if option == None:
+		A_MeanVec = np.mean(A, 0)
+		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
+		A_new = np.copy(A - A_MeanMat)
 
+		A0_MeanVec = A0.sum(0) / (A0 != 0).sum(0)
+		A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
+		A0_new = np.copy(A0 - A0_MeanMat)
+		A0_new[np.where(A1 == 0)] = 0
+	else:
+		A_MeanMat = option[0]
+		A_new = np.copy(A - A_MeanMat)	
 
-	A0_MeanVec = A0.sum(0) / (A0 != 0).sum(0)
-	A0_MeanMat = np.tile(A0_MeanVec,(A0.shape[0], 1))
-	A0_new = np.copy(A0 - A0_MeanMat)
-	A0_new[np.where(A1 == 0)] = 0
-	
+		A0_MeanMat = option[1]
+		A0_new = np.copy(A0 - A0_MeanMat)
+		A0_new[np.where(A1 == 0)] = 0
+
 	A1_MeanVec = A1.sum(0) / (A1 != 0).sum(0)
 	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
 	A1_new = np.copy(A1 - A1_MeanMat)
@@ -45,8 +51,8 @@ def deficiency_matrix(AA, AA0, AA1, shift):
 	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T)
 
 
-def interpolation_13(AA, AA0, AA1, shift):
-	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1, shift)
+def interpolation_13(AA, AA0, AA1, shift, option = None):
+	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1, shift, option)
 
 	U = mysvd(np.matmul(A, A.T))
 	U0 = mysvd(np.matmul(A0, A0.T)) 
@@ -85,8 +91,8 @@ def interpolation_13(AA, AA0, AA1, shift):
 	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
 
 
-def interpolation_24(AA, AA0, AA1, shift):
-	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1, shift)
+def interpolation_24(AA, AA0, AA1, shift, option = None):
+	A, A0, A1, A1_MeanMat, A0_MeanMat = deficiency_matrix(AA, AA0, AA1, shift, option)
 	
 	V = mysvd(np.matmul(A.T, A)) 
 	V0 = mysvd(np.matmul(A0.T, A0)) 
@@ -156,5 +162,5 @@ def get_removed_peice(A, length, number_frame_missing):
 	missing_frame_arr = random.sample(l, number_frame_missing)
 	for x in missing_frame_arr:
 		for i in range(AA[x].size):
-			AA[x][i] = 0
+			AA[x,i] = 0
 	return AA 
