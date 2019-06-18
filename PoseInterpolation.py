@@ -143,7 +143,7 @@ def process_hub5(method = 1, joint = True):
 		# resultA30.append(tmpA30)
 		# resultA40.append(tmpA40)
 
-	# file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
+	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
 	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
 	plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
 	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 	print(full_list)
 	
 	# process_hub(method = 3, joint = True)
-	process_hub5(method = 5, joint = False)
+	process_hub5(method = 5, joint = True)
 
 	#target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
 

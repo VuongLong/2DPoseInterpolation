@@ -50,15 +50,14 @@ def interpolation_13(AA, AA0, AA1, shift):
 
 	U = mysvd(np.matmul(A, A.T))
 	U0 = mysvd(np.matmul(A0, A0.T)) 
-	TMat = np.matmul(U0.T, U)  #U = U0TMat
-	U1 = mysvd(np.matmul(A1, A1.T)) 
 	
+	U1 = mysvd(np.matmul(A1, A1.T)) 
+	T1Mat = np.matmul(U1.T, U)  #U = U1TMat
 
 
-	TTU1TA1 = np.matmul(TMat.T, np.matmul(U1.T, A1))
-	TTU0TA0 = np.matmul(TMat.T, np.matmul(U0.T, A0))
-	A1star =  np.matmul(np.matmul(np.matmul(U, TMat.T), U1.T), A1)
-	A0star =  np.matmul(np.matmul(np.matmul(U, TMat.T), U0.T), A0)
+	T1TU1TA1 = np.matmul(T1Mat.T, np.matmul(U1.T, A1))
+	A1star =  np.matmul(np.matmul(np.matmul(U, T1Mat.T), U1.T), A1)
+	A0star =  np.matmul(np.matmul(np.matmul(U, T1Mat.T), U0.T), A0)
 	# A1star =  np.matmul(U, TTU1TA1)
 	# A0star = np.matmul(U, TTU0TA0)
 	
@@ -82,7 +81,7 @@ def interpolation_13(AA, AA0, AA1, shift):
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]	
 
 	# return A1.T, A0.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
-	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
+	return A1.T, A0.T, IUT, np.ravel(T1TU1TA1, order='F')
 
 
 def interpolation_24(AA, AA0, AA1, shift):
@@ -90,16 +89,12 @@ def interpolation_24(AA, AA0, AA1, shift):
 	
 	V = mysvd(np.matmul(A.T, A)) 
 	V0 = mysvd(np.matmul(A0.T, A0)) 
-	F = np.matmul(V0.T, V)
 	V1 = mysvd(np.matmul(A1.T, A1))
-	
+	F1 = np.matmul(V1.T, V)
 
-	A1V1F = np.matmul(np.matmul(A1, V1), F)
-	A0V0F = np.matmul(np.matmul(A0, V0), F)
-	A1star =  np.matmul(np.matmul(np.matmul(A1, V1), F), V.T)
-	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F), V.T)	
-	# A1star =  np.matmul(A1V1F, V.T)
-	# A0star =  np.matmul(A0V0F, V.T)
+	A1V1F1 = np.matmul(np.matmul(A1, V1), F1)
+	A1star =  np.matmul(np.matmul(np.matmul(A1, V1), F1), V.T)
+	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F1), V.T)	
 
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
@@ -118,7 +113,7 @@ def interpolation_24(AA, AA0, AA1, shift):
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
 	
-	return A1.T, A0.T, VTI, np.ravel(A1V1F, order='F'), A1_MeanMat
+	return A1.T, A0.T, VTI, np.ravel(A1V1F1, order='F'), A1_MeanMat
 
 
 def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
