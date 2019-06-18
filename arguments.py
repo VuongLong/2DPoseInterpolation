@@ -17,7 +17,7 @@ class arguments(argparse.Namespace):
 	reference  = [0, 497]
 	reference_task4 = [[0, 50], [50, 100], [100, 150]]						
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
-	missing_joint = [10]
+	missing_joint = [1, 2, 3, 4, 5]
 	
 	target = [0, 50]
 	ingore_confidence = True
