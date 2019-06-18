@@ -64,12 +64,7 @@ def interpolation_13(AA, AA0, AA1, shift, option = None):
 	A0star =  np.matmul(np.matmul(np.matmul(U, TMat.T), U0.T), A0)
 	# A1star =  np.matmul(U, TTU1TA1)
 	# A0star = np.matmul(U, TTU0TA0)
-	checker = np.matmul(np.matmul(U, TMat.T), U1.T)
-	print(A1)
-	print("/////////////////////////////")
-	print(checker)
-	print("/////////////////////////////")
-	print(A1star)
+	
 
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
@@ -107,7 +102,6 @@ def interpolation_24(AA, AA0, AA1, shift, option = None):
 	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F), V.T)	
 	# A1star =  np.matmul(A1V1F, V.T)
 	# A0star =  np.matmul(A0V0F, V.T)
-	checker = np.matmul(np.matmul(V1, F), V.T)
 
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
