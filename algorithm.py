@@ -54,13 +54,24 @@ def interpolation_13(AA, AA0, AA1, shift):
 	U1 = mysvd(np.matmul(A1, A1.T)) 
 	T1Mat = np.matmul(U1.T, U)  #U = U1TMat
 
+	UTA = np.matmul(U.T, np.copy(AA0.T))
+	U1TA1 = np.matmul(U1.T, A1)
+	print("UTA:                  ",UTA. shape)
+	print("U0TA0				 ",U1TA1.shape)
+	X = np.linalg.lstsq(U1TA1.T, UTA.T)
+	T1Mat = np.copy(X[0])
+	print("checkTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
+	print(T1Mat)
+	print("checkTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
+
 
 	T1TU1TA1 = np.matmul(T1Mat.T, np.matmul(U1.T, A1))
 	A1star =  np.matmul(np.matmul(np.matmul(U, T1Mat.T), U1.T), A1)
 	A0star =  np.matmul(np.matmul(np.matmul(U, T1Mat.T), U0.T), A0)
 	# A1star =  np.matmul(U, TTU1TA1)
 	# A0star = np.matmul(U, TTU0TA0)
-	
+	print(A1star[np.where(AA1.T == 0)])
+	print("//////////////////////////////////////")
 
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
