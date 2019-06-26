@@ -169,7 +169,7 @@ if __name__ == '__main__':
 	print(full_list)
 	
 	# process_hub(method = 3, joint = True)
-	A1_star3 = process_hub5(method = 5, joint = True)
+	A1_star3 = process_hub5(method = 5, joint = False)
 
 	# target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
 
