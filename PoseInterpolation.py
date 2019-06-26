@@ -110,6 +110,9 @@ def process_hub5(method = 1, joint = True):
 	tmp_meanVecUnit = np.tile(tmp_meanVec, (arg.length, 1)).T
 	AN_MeanMat = np.tile(tmp_meanVecUnit, (3, 1)).T
 
+	# if want pass option = [AN3_MeanMat, A0_mean] for task 3
+	# if want pass option = [AN_MeanMat, A0_mean] for task 4
+
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
 	A_temp_zero = []
 	for num_missing in arg.missing_joint:
@@ -134,19 +137,17 @@ def process_hub5(method = 1, joint = True):
 			A1zero[np.where(A_temp_zero[num_missing-1] == 0)] = 0
 	
 			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero), 
-																shift = check_shift, option = None)
+																shift = check_shift, option = [AN3_MeanMat, A0_mean])
 			tmpA3.append(np.around(calculate_mse(A1, A1_star3), decimals = 17))
-			# tmpA30.append(np.around(calculate_mse(A, A0_star3), decimals = 3))
 			A1_star4, A0_star4,VTI,A1V1FR,A1_MeanMat = interpolation_24(np.copy(A_N), np.copy(A) ,np.copy(A1zero), 
-																shift = check_shift, option = None)
+																shift = check_shift, option = [AN_MeanMat, A0_mean])
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 17))
-	
+			# A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
+			# tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))	
 
 		# resultA1.append(tmpA1)
 		resultA3.append(tmpA3)
 		resultA4.append(tmpA4)
-		# resultA30.append(tmpA30)
-		# resultA40.append(tmpA40)
 
 	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
 	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
