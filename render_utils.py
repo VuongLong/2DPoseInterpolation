@@ -130,3 +130,39 @@ def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0",
 	plt.ylim((0, 6))
 	plt.show()
 	fig.savefig(title+'.jpg')
+
+
+def plot_line3(M1_result1, M1_result2, M1_result3, title, type = "joint", name1 = "Error A0", name2 = "Error A1", scale = "1"):
+	fig = plt.figure(figsize=(20,10))
+	fig.suptitle(title, fontsize=10)
+	tmp = np.copy(np.array(M1_result1).T)
+	plt.subplot(311)
+	for idx, x in enumerate(tmp):
+		yy = np.arange(x.shape[0])
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+str(idx+1))
+	plt.legend(loc = 0, mode="expand", ncol= 2)
+	plt.ylabel("Error of Task 5")
+	print(plt.ylim())
+	plt.ylim((0, 8))
+
+
+	tmp = np.copy(np.array(M1_result2).T)
+	plt.subplot(312)
+	for idx, x in enumerate(tmp):
+		yy = np.arange(x.shape[0])
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0)
+	plt.ylabel("Error of Task 3")
+	print(plt.ylim())
+	plt.ylim((0, 8))
+
+	tmp = np.copy(np.array(M1_result3).T)
+	plt.subplot(313)
+	for idx, x in enumerate(tmp):
+		yy = np.arange(x.shape[0])
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0)
+	plt.xlabel('Number shifted frame')
+	plt.ylabel("Error of Task 4")
+	print(plt.ylim())
+	plt.ylim((0, 8))
+	plt.show()
+	fig.savefig(title+'.jpg')
