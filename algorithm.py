@@ -5,7 +5,7 @@ import random
 def mysvd(dataMat):
 	U, Sigma, VT = np.linalg.svd(dataMat)
 	#print(Sigma) # Sigma is a row vector
-	#Sigma_mat = np.mat(np.eye(75) * Sigma[:75]) # change Sigma to a matrix 
+	#Sigma_mat = np.mat(np.eye(75) * Sigma[:75]) # change Sigma to a matrix
 	#print(Sigma_mat)
 	return U
 
@@ -30,7 +30,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A0_new[np.where(A1 == 0)] = 0
 	else:
 		A_MeanMat = option[0]
-		A_new = np.copy(A - A_MeanMat)	
+		A_new = np.copy(A - A_MeanMat)
 
 		A0_MeanMat = option[1]
 		A0_new = np.copy(A0 - A0_MeanMat)
@@ -41,7 +41,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 	A1_MeanMat = np.tile(A1_MeanVec,(A1.shape[0], 1))
 	A1_new = np.copy(A1 - A1_MeanMat)
 	A1_new[np.where(A1 == 0)] = 0
-	
+
 	if not shift:
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
@@ -50,29 +50,27 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 
 
 def interpolation_13(AA, AA0, AA1, shift, option = None):
-	A, A0, A1, A1_MeanMat, A0_MeanMat, AA = deficiency_matrix(AA, AA0, AA1, shift, option)
+	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
 
 	U = mysvd(np.matmul(A, A.T))
-	U0 = mysvd(np.matmul(A0, A0.T)) 
+	U0 = mysvd(np.matmul(A0, A0.T))
 	TMat = np.matmul(U0.T, U)  #U = U0TMat
-	U1 = mysvd(np.matmul(A1, A1.T)) 
-	
-	UTA = np.matmul(U.T, AA)
-	U0TA0_T = np.matmul(U0.T, A0).T
-	X = np.linalg.lstsq(U0TA0_T, UTA.T)
+	U1 = mysvd(np.matmul(A1, A1.T))
+
+	UTA = np.matmul(U.T, AAA)
+
+	U1TA1_T = np.matmul(U1.T, A1).T
+	X = np.linalg.lstsq(U1TA1_T, UTA.T)
 	TMat1 = X[0]
 
 	TTU1TA1 = np.matmul(TMat1.T, np.matmul(U1.T, A1))
 	TTU0TA0 = np.matmul(TMat1.T, np.matmul(U0.T, A0))
 	A1star =  np.matmul(np.matmul(np.matmul(U, TMat1.T), U1.T), A1)
 	A0star =  np.matmul(np.matmul(np.matmul(U, TMat1.T), U0.T), A0)
-	# A1star =  np.matmul(U, TTU1TA1)
-	# A0star = np.matmul(U, TTU0TA0)
-	
 
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
-	
+
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
 
@@ -81,40 +79,36 @@ def interpolation_13(AA, AA0, AA1, shift, option = None):
 	joint_length = A1star.shape[0]
 	frame_length = A1star.shape[1]
 
-	# I = np.identity(frame_length)
 	I = np.eye(frame_length)
 	IUT = np.kron(I, U.T)
 
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
-	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]	
+	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
 
-	# return A1.T, A0.T, IUT, TTU1TA1.reshape(joint_length*frame_length, 1)
 	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
 
 
 def interpolation_24(AA, AA0, AA1, shift, option = None):
-	A, A0, A1, A1_MeanMat, A0_MeanMat, AA = deficiency_matrix(AA, AA0, AA1, shift, option)
-		
-	V = mysvd(np.matmul(A.T, A)) 
-	V0 = mysvd(np.matmul(A0.T, A0)) 
+	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
+
+	V = mysvd(np.matmul(A.T, A))
+	V0 = mysvd(np.matmul(A0.T, A0))
 	F = np.matmul(V0.T, V)
 	V1 = mysvd(np.matmul(A1.T, A1))
-	
-	AV = np.matmul(AA, V)
-	A0V0 = np.matmul(A0, V0)
-	X = np.linalg.lstsq(A0V0, AV)
+
+	AV = np.matmul(AAA, V)
+	A1V1 = np.matmul(A1, V1)
+	X = np.linalg.lstsq(A1V1, AV)
 	F1 = X[0]
 
 	A1V1F = np.matmul(np.matmul(A1, V1), F1)
 	A0V0F = np.matmul(np.matmul(A0, V0), F1)
 	A1star =  np.matmul(np.matmul(np.matmul(A1, V1), F1), V.T)
-	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F1), V.T)	
-	# A1star =  np.matmul(A1V1F, V.T)
-	# A0star =  np.matmul(A0V0F, V.T)
-
+	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F1), V.T)
+	
 	A1star = A1star + A1_MeanMat
 	A0star = A0star + A0_MeanMat
-	
+
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
 
@@ -123,12 +117,11 @@ def interpolation_24(AA, AA0, AA1, shift, option = None):
 	joint_length = A1star.shape[0]
 	frame_length = A1star.shape[1]
 
-	# I = np.identity(joint_length)
 	I = np.eye(joint_length)
 	VTI = np.kron(V.T, I)
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
-	
+
 	return A1.T, A0.T, VTI, np.ravel(A1V1F, order='F'), A1_MeanMat
 
 
@@ -149,15 +142,55 @@ def calculate_mse(X, Y):
 
 
 def get_random_joint(A, length, num_joint_missing):
-	number_frame_missing = 15
+	number_frame_missing = 10
 	AA = np.copy(A)
 	l = [x for x in range(length)]
 	missing_frame_arr = random.sample(l, number_frame_missing)
+	ll = [x for x in range(25)]
+	missing_joint_arr = random.sample(ll, num_joint_missing)
+
 	for x in missing_frame_arr:
-		for xx in range(num_joint_missing):
-			indices = random.randint(0, 24)
-			AA[x, indices*2] = 0
-			AA[x, indices*2+1] = 0
+		for xx in missing_joint_arr:
+			AA[x, xx*2] = 0
+			AA[x, xx*2+1] = 0
+	return AA
+
+
+def get_random_joint3D(A, length, num_joint_missing):
+	number_frame_missing = 10
+	AA = np.copy(A)
+	l = [x for x in range(length)]
+	missing_frame_arr = random.sample(l, number_frame_missing)
+	ll = [x for x in range(15)]
+	missing_joint_arr = random.sample(ll, num_joint_missing)
+
+	for x in missing_frame_arr:
+		for xx in missing_joint_arr:
+			AA[x, xx*3] = 0
+			AA[x, xx*3+1] = 0
+			AA[x, xx*3+2] = 0
+	return AA
+
+
+def get_random_joint_partially(A, length, num_joint_missing, frame_index):
+	AA = np.copy(A)
+	ll = [x for x in range(25)]
+	missing_joint_arr = random.sample(ll, num_joint_missing)
+	for xx in missing_joint_arr:
+		AA[frame_index, xx*2] = 0
+		AA[frame_index, xx*2+1] = 0
+	return AA
+
+
+
+def get_random_joint_partially3D(A, length, num_joint_missing, frame_index):
+	AA = np.copy(A)
+	ll = [x for x in range(15)]
+	missing_joint_arr = random.sample(ll, num_joint_missing)
+	for xx in missing_joint_arr:
+		AA[frame_index, xx*3] = 0
+		AA[frame_index, xx*3+1] = 0
+		AA[frame_index, xx*3+2] = 0
 	return AA
 
 
@@ -168,7 +201,17 @@ def get_removed_peice(A, length, number_frame_missing):
 	for x in missing_frame_arr:
 		for i in range(AA[x].size):
 			AA[x][i] = 0
-	return AA 
+	return AA
+
+def get_removed_peice3D(A, length, number_frame_missing):
+	AA = np.copy(A)
+	l = [x for x in range(length)]
+	missing_frame_arr = random.sample(l, number_frame_missing)
+	for x in missing_frame_arr:
+		for i in range(AA[x].size):
+			AA[x][i] = 0
+	return AA
+
 
 def get_remove_row(A, length, num_row_missing):
 	number_frame_missing = 15
