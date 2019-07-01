@@ -38,16 +38,9 @@ def process_hub5(method = 1, joint = True):
 
 	A = np.copy(Tracking3D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length3D+shift_A_value])
 	A_temp_zero = []
-	# for num_missing in arg.missing_joint:
-	# 	if joint:
-	# 		A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
-	# 		# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
-	# 	else:
-	# 		A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
-
+	
 	for num_missing in range(A.shape[1]):
 		A_temp_zero.append(get_random_joint_partially3D(A, arg.length3D, arg.missing_joint_partially,num_missing))
-		# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
 
 	current_frame_shift = 1
 	counter = 0
@@ -66,9 +59,6 @@ def process_hub5(method = 1, joint = True):
 			A1zero = np.copy(A1)
 			A1zero[np.where(A_temp_zero[num_missing] == 0)] = 0
 			counter += 1
-			# np.savetxt(str(counter)+".txt", A1zero, fmt = "%.3f")
-			# if counter == 5:
-				# halt
 			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero),
 																shift = check_shift, option = None)
 			tmpA3.append(np.around(calculate_mse(A1, A1_star3), decimals = 17))
@@ -76,17 +66,16 @@ def process_hub5(method = 1, joint = True):
 			A1_star4, A0_star4,VTI,A1V1FR,A1_MeanMat = interpolation_24(np.copy(A_N), np.copy(A) ,np.copy(A1zero),
 																shift = check_shift, option = None)
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 17))
-			# np.savetxt("6"+str(counter)+".txt", A1_star3, fmt = "%.3f")
-			# A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
-			# tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
+			A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
+			tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
 
-		# resultA1.append(tmpA1)
+		resultA1.append(tmpA1)
 		resultA3.append(tmpA3)
 		resultA4.append(tmpA4)
 	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length3D)+'_'+str(arg.AN_length_3D)
-	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
-	plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
-	# plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
+	export_xls(resultA1, resultA3, resultA4, file_name = file_name)
+	#plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
+	plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
 	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)
 	# plot_line(resultA1, resultA3, file_name+"_cp53", type_plot, name1 = "Error T5", name2 = "Error T3", scale= shift_A1_value)
 

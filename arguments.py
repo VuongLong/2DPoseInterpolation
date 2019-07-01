@@ -10,9 +10,9 @@ class arguments(argparse.Namespace):
 
 
 	input_dir3D = './data3D'
-	output_dir = './output'
 	output_video3D = 'chuckpangpadNha_Take_001'
 	data_dir3D = input_dir3D + '/' + output_video3D + ".bvh"
+	new_dir3D = output_dir + '/' + output_video3D+ "_new" + ".bvh"
 	# chuckpangpadNha_Take_001.bvh
 	length = 50
 	length3D = 45
@@ -30,10 +30,12 @@ class arguments(argparse.Namespace):
 
 
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
-	missing_joint = [1, 2, 3, 4, 5]
+	missing_number = [1, 2, 3, 4, 5]
 	missing_joint_partially = 10
 
 	target = [0, 50]
 	ingore_confidence = True
+
+	missing_row_arr = [14, 10, 1, 4, 5] # random select missing row
 
 arg = arguments

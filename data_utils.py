@@ -61,3 +61,28 @@ def find_miss_matrix(Tracking2D, frame_length, bum_frame_miss, max_miss_in_a_fra
 # plot miss_matrix on video to check
 def contruct_sellect_matrix():
 	pass
+
+
+
+def reconstruct_3D(data_dir, new_dir,restore, predicted_matrix):
+	restore = restore.reshape(restore.shape[0], 15, 6)
+	predicted_matrix = predicted_matrix.reshape(predicted_matrix.shape[0], 15, 3)
+	restore[..., 0:3] = predicted_matrix
+	restore = restore.reshape(restore.shape[0],90)
+	print("starting reconstruct")
+	old_data = []
+	f=open(data_dir, 'r')
+	j=0
+	for line in f:
+		j+=1
+		if j > 95:
+			break
+		old_data.append(line)
+	f.close()
+	f=open(new_dir, 'w')
+	for line in old_data:
+		f.write(line)
+	for line in restore:
+		f.write(line)
+	f.close()
+	print("Finished reconstruct")

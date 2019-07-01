@@ -1,6 +1,6 @@
 import numpy as np
 import random
-
+from arguments import arg
 
 def mysvd(dataMat):
 	U, Sigma, VT = np.linalg.svd(dataMat)
@@ -216,9 +216,21 @@ def get_removed_peice3D(A, length, number_frame_missing):
 def get_remove_row(A, length, num_row_missing):
 	number_frame_missing = 15
 	AA = np.copy(A)
-	arr = [18, 10, 4, 9, 1]
-	indices = arr[num_row_missing-1]
-	for x in range(0, length):
-		AA[x, indices*2] = 0
-		AA[x, indices*2+1] = 0
+	arr = random.sample(arg.missing_row_arr, num_row_missing)
+	for index in arr:
+		for x in range(0, length):
+			AA[x, index*2] = 0
+			AA[x, index*2+1] = 0
+	return AA
+
+
+def get_remove_row3D(A, length, num_row_missing):
+	number_frame_missing = 15
+	AA = np.copy(A)
+	arr = random.sample(arg.missing_row_arr, num_row_missing)
+	for index in arr:
+		for x in range(0, length):
+			AA[x, index*3] = 0
+			AA[x, index*3+1] = 0
+			AA[x, index*3+2] = 0
 	return AA

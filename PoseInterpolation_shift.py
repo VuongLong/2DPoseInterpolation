@@ -38,7 +38,7 @@ def process_hub5(method = 1, joint = True):
 
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
 	A_temp_zero = []
-	for num_missing in arg.missing_joint:
+	for num_missing in arg.missing_number:
 		if joint:
 			A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
 			# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
@@ -54,7 +54,7 @@ def process_hub5(method = 1, joint = True):
 		check_shift = True
 		if current_frame_shift == 0:
 			check_shift = False
-		for index_A_temp in range(len(arg.missing_joint)):
+		for index_A_temp in range(len(arg.missing_number)):
 			A1 = np.copy(
 				Tracking2D[arg.reference[0]+shift_A_value+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length+shift_A_value+current_frame_shift*shift_A1_value]) 
 			A1zero = np.copy(A1)
