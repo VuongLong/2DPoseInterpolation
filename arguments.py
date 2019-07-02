@@ -12,7 +12,7 @@ class arguments(argparse.Namespace):
 	input_dir3D = './data3D'
 	output_video3D = 'chuckpangpadNha_Take_001'
 	data_dir3D = input_dir3D + '/' + output_video3D + ".bvh"
-	new_dir3D = output_dir + '/' + output_video3D+ "_new" + ".bvh"
+	new_dir3D = output_dir + '/bvh/' + output_video3D+ "_new" + ".bvh"
 	# chuckpangpadNha_Take_001.bvh
 	length = 50
 	length3D = 45

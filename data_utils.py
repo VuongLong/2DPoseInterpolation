@@ -83,6 +83,7 @@ def reconstruct_3D(data_dir, new_dir,restore, predicted_matrix):
 	for line in old_data:
 		f.write(line)
 	for line in restore:
-		f.write(line)
+		tmp_str = ' '.join(str(e) for e in line)
+		f.write(tmp_str+"\n")
 	f.close()
 	print("Finished reconstruct")
