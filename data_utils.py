@@ -20,6 +20,27 @@ def read_tracking_data(data_dir, ingore_confidence=False):
 		Tracking2D = Tracking2D.reshape(Tracking2D.shape[0],50)
 	return Tracking2D
 
+def read_tracking_data3D(data_dir):
+	Tracking3D = []
+	f=open(data_dir, 'r')
+	j=0
+	for line in f:
+		if j > 95:
+			elements = line.split(' ')
+			Tracking3D.append(map(float, elements[:-1]))
+		j+=1
+	f.close()
+
+	Tracking3D = np.array(Tracking3D) # list can not read by index while arr can be
+
+	Tracking3D = np.squeeze(Tracking3D)
+	restore = np.copy(Tracking3D)
+	Tracking3D = Tracking3D.reshape(Tracking3D.shape[0], 15, 6)
+	Tracking3D = Tracking3D[..., 0:3]
+	Tracking3D = Tracking3D.reshape(Tracking3D.shape[0],45)
+	return Tracking3D, restore
+
+
 def find_full_matrix(Tracking2D, frame_length, overlap=False):
 	count = 0
 	list_full = []
@@ -40,3 +61,29 @@ def find_miss_matrix(Tracking2D, frame_length, bum_frame_miss, max_miss_in_a_fra
 # plot miss_matrix on video to check
 def contruct_sellect_matrix():
 	pass
+
+
+
+def reconstruct_3D(data_dir, new_dir,restore, predicted_matrix):
+	restore = restore.reshape(restore.shape[0], 15, 6)
+	predicted_matrix = predicted_matrix.reshape(predicted_matrix.shape[0], 15, 3)
+	restore[..., 0:3] = predicted_matrix
+	restore = restore.reshape(restore.shape[0],90)
+	print("starting reconstruct")
+	old_data = []
+	f=open(data_dir, 'r')
+	j=0
+	for line in f:
+		j+=1
+		if j > 95:
+			break
+		old_data.append(line)
+	f.close()
+	f=open(new_dir, 'w')
+	for line in old_data:
+		f.write(line)
+	for line in restore:
+		tmp_str = ' '.join(str(e) for e in line)
+		f.write(tmp_str+"\n")
+	f.close()
+	print("Finished reconstruct")

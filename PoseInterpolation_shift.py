@@ -16,7 +16,7 @@ def process_hub5(method = 1, joint = True):
 	if joint:
 		type_plot = "joint"
 	shift_A_value = 23
-	shift_A1_value = 1 # must greater or equal to 1
+	shift_A1_value = 10
 	A_N = np.array([]) 
 	for x in arg.reference_task4:
 		tmp = np.copy(Tracking2D[x[0]:x[1]])
@@ -38,20 +38,14 @@ def process_hub5(method = 1, joint = True):
 
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value]) 
 	A_temp_zero = []
-	# for common missing joint
-	#for num_missing in arg.missing_number:
-	#	if joint:
-	#		A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
-	#		# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
-	#	else:
-	#		A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
-	# for partially missing joint
+	for num_missing in arg.missing_number:
+		if joint:
+			A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
+			# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
+		else:
+			A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
 
-	for frame_index in range(A.shape[1]):
-		A_temp_zero.append(get_random_joint_partially(A, arg.length, arg.missing_joint_partially, frame_index))
-
-	current_frame_shift = 1
-	for frame_index in range(A.shape[1]):
+	for current_frame_shift in range(20):
 		tmpA1 = []
 		tmpA3 = []
 		tmpA30 = []
@@ -60,11 +54,11 @@ def process_hub5(method = 1, joint = True):
 		check_shift = True
 		if current_frame_shift == 0:
 			check_shift = False
-		for x in range(1):
+		for index_A_temp in range(len(arg.missing_number)):
 			A1 = np.copy(
-				Tracking2D[arg.reference[0]+shift_A_value*2+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length+shift_A_value*2+current_frame_shift*shift_A1_value]) 
+				Tracking2D[arg.reference[0]+shift_A_value+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length+shift_A_value+current_frame_shift*shift_A1_value]) 
 			A1zero = np.copy(A1)
-			A1zero[np.where(A_temp_zero[frame_index] == 0)] = 0
+			A1zero[np.where(A_temp_zero[index_A_temp] == 0)] = 0
 	
 			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero), 
 																shift = check_shift, option = None)
@@ -83,7 +77,7 @@ def process_hub5(method = 1, joint = True):
 
 	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
 	export_xls(resultA1, resultA3, resultA4, file_name = file_name)
-	#plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
+	# plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
 	plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
 	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)
 	# plot_line(resultA1, resultA3, file_name+"_cp53", type_plot, name1 = "Error T5", name2 = "Error T3", scale= shift_A1_value)
@@ -98,7 +92,7 @@ if __name__ == '__main__':
 	print(full_list)
 	
 	# process_hub(method = 3, joint = True)
-	process_hub5(method = 5, joint = True)
+	process_hub5(method = 5, joint = False)
 
 	# target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
 
