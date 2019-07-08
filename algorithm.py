@@ -111,10 +111,7 @@ def interpolation_24(AA, AA0, AA1, shift, option = None):
 	A0V0F = np.matmul(np.matmul(A0, V0), F1)
 	A1star =  np.matmul(np.matmul(np.matmul(A1, V1), F1), V.T)
 	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F1), V.T)
-	
-	print(A1star[np.where(AA1.T == 0)])
-	print("///////////////////////Begin//////////////////")
-	
+
 	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
 	A0star = reconstruct_interpolate(AA1, A0star, A0_MeanMat)
 
@@ -140,10 +137,7 @@ def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 	B = np.concatenate((TTU1TA1R, A1V1FR), axis=0)
 	X = np.linalg.lstsq(A, B)
 	XX =  X[0].reshape(A1.shape[0],A1.shape[1])
-	print(XX[np.where(A1 == 0)])
-	print("////////////////////End???????????????????")
 	Astar = reconstruct_interpolate(A1.T, X[0].reshape(A1.shape[0],A1.shape[1]), A1_MeanMat.T)
-
 	A_new[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
 	return A_new
 
