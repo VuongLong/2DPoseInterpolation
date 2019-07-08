@@ -18,7 +18,7 @@ def process_hub5(method = 1, joint = True):
 	shift_A_value = 23
 	shift_A1_value = 1
 	A_N = np.array([])
-	for x in arg.reference_task4:
+	for x in arg.reference_task4_3D:
 		tmp = np.copy(Tracking3D[x[0]:x[1]])
 		if A_N.shape[0] != 0:
 			A_N = np.concatenate((A_N, tmp), axis = 1)
@@ -42,7 +42,6 @@ def process_hub5(method = 1, joint = True):
 	for num_missing in range(A.shape[1]):
 		A_temp_zero.append(get_random_joint_partially3D(A, arg.length3D, arg.missing_joint_partially,num_missing))
 
-	current_frame_shift = 1
 	counter = 0
 	for num_missing in range(A.shape[1]):
 		tmpA1 = []
@@ -51,11 +50,9 @@ def process_hub5(method = 1, joint = True):
 		tmpA4 = []
 		tmpA40 = []
 		check_shift = True
-		if current_frame_shift == 0:
-			check_shift = False
 		for xx in range(1):
 			A1 = np.copy(
-				Tracking3D[arg.reference[0]+shift_A_value*15+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length3D+shift_A_value*15+current_frame_shift*shift_A1_value])
+				Tracking3D[arg.reference[0]+shift_A_value*15:arg.reference[0]+arg.length3D+shift_A_value*15])
 			A1zero = np.copy(A1)
 			A1zero[np.where(A_temp_zero[num_missing] == 0)] = 0
 			counter += 1

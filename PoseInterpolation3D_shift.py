@@ -18,7 +18,7 @@ def process_hub5(method = 1, joint = True):
 	shift_A_value = 23
 	shift_A1_value = 10
 	A_N = np.array([])
-	for x in arg.reference_task4:
+	for x in arg.reference_task4_3D:
 		tmp = np.copy(Tracking3D[x[0]:x[1]])
 		if A_N.shape[0] != 0:
 			A_N = np.concatenate((A_N, tmp), axis = 1)
@@ -40,8 +40,8 @@ def process_hub5(method = 1, joint = True):
 	A_temp_zero = []
 	for num_missing in arg.missing_number:
 		if joint:
-			A_temp_zero.append(get_random_joint3D(A, arg.length3D, num_missing))
-			# A_temp_zero.append(get_remove_row3D(A, arg.length3D, num_missing))
+			#A_temp_zero.append(get_random_joint3D(A, arg.length3D, num_missing))
+			A_temp_zero.append(get_remove_row3D(A, arg.length3D, num_missing))
 		else:
 			A_temp_zero.append(get_removed_peice3D(A, arg.length3D, num_missing))
 
@@ -68,17 +68,17 @@ def process_hub5(method = 1, joint = True):
 																shift = check_shift, option = None)
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 17))
 
-			# A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
-			# tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
+			A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
+			tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
 
-		# resultA1.append(tmpA1)
+		resultA1.append(tmpA1)
 		resultA3.append(tmpA3)
 		resultA4.append(tmpA4)
 
-	# file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length3D)+'_'+str(arg.AN_length_3D)
-	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
+	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length3D)+'_'+str(arg.AN_length_3D)
+	export_xls(resultA1, resultA3, resultA4, file_name = file_name)
 	# plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
-	# plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
+	plot_line3(resultA1, resultA3, resultA4, file_name+"_cp345", type_plot, scale= shift_A1_value)
 	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)
 	# plot_line(resultA1, resultA3, file_name+"_cp53", type_plot, name1 = "Error T5", name2 = "Error T3", scale= shift_A1_value)
 	return A1_star4
@@ -88,7 +88,7 @@ def pre_reconstruct(joint = True):
 	shift_A_value = 23
 	shift_A1_value = 200
 	A_N = np.array([])
-	for x in arg.reference_task4:
+	for x in arg.reference_task4_3D:
 		tmp = np.copy(Tracking3D[x[0]:x[1]])
 		if A_N.shape[0] != 0:
 			A_N = np.concatenate((A_N, tmp), axis = 1)
@@ -124,8 +124,8 @@ if __name__ == '__main__':
 
 	Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D = Tracking3D.astype(float)
-	# predicted_matrix = process_hub5(method = 5, joint = True)
-	predicted_matrix = pre_reconstruct(joint = True)
+	predicted_matrix = process_hub5(method = 5, joint = True)
+	# predicted_matrix = pre_reconstruct(joint = True)
 	# reconstruct file
-	reconstruct_3D(arg.data_dir3D, arg.new_dir3D, restore, predicted_matrix)
+	# reconstruct_3D(arg.data_dir3D, arg.new_dir3D, restore, predicted_matrix)
 
