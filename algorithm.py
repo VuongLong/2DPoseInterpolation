@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A0 = np.copy(AA0)
-	AAA = np.copy(AA0)
+	A = np.copy(AA.T)
+	A1 = np.copy(AA1.T)
+	A0 = np.copy(AA0.T)
+	AAA = np.copy(AA0.T)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,13 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
+	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+
+
+def reconstruct_interpolate(AA1, Astar, A_MeanMat):
+	if np.absolute(sum(Astar[np.where(AA1.T == 0)])) <= 0.01:
+		return Astar
+	return Astar + A_MeanMat
 
 
 def interpolation_13(AA, AA0, AA1, shift, option = None):
@@ -68,8 +74,8 @@ def interpolation_13(AA, AA0, AA1, shift, option = None):
 	A1star =  np.matmul(np.matmul(np.matmul(U, TMat1.T), U1.T), A1)
 	A0star =  np.matmul(np.matmul(np.matmul(U, TMat1.T), U0.T), A0)
 
-	A1star = A1star + A1_MeanMat
-	A0star = A0star + A0_MeanMat
+	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
+	A0star = reconstruct_interpolate(AA1, A0star, A0_MeanMat)
 
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
@@ -106,8 +112,11 @@ def interpolation_24(AA, AA0, AA1, shift, option = None):
 	A1star =  np.matmul(np.matmul(np.matmul(A1, V1), F1), V.T)
 	A0star =  np.matmul(np.matmul(np.matmul(A0, V0), F1), V.T)
 	
-	A1star = A1star + A1_MeanMat
-	A0star = A0star + A0_MeanMat
+	print(A1star[np.where(AA1.T == 0)])
+	print("///////////////////////Begin//////////////////")
+	
+	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
+	A0star = reconstruct_interpolate(AA1, A0star, A0_MeanMat)
 
 	A1 = A1 + A1_MeanMat
 	A0 = A0 + A0_MeanMat
@@ -130,7 +139,11 @@ def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 	A = np.concatenate((IUT, VTI), axis=0)
 	B = np.concatenate((TTU1TA1R, A1V1FR), axis=0)
 	X = np.linalg.lstsq(A, B)
-	Astar = X[0].reshape(A1.shape[0],A1.shape[1]) + A1_MeanMat.T
+	XX =  X[0].reshape(A1.shape[0],A1.shape[1])
+	print(XX[np.where(A1 == 0)])
+	print("////////////////////End???????????????????")
+	Astar = reconstruct_interpolate(A1.T, X[0].reshape(A1.shape[0],A1.shape[1]), A1_MeanMat.T)
+
 	A_new[np.where(A1 == 0)] = Astar[np.where(A1 == 0)]
 	return A_new
 

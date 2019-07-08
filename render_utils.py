@@ -139,9 +139,9 @@ def plot_line3(M1_result1, M1_result2, M1_result3, title, type = "joint", name1 
 	plt.subplot(311)
 	for idx, x in enumerate(tmp):
 		yy = np.arange(x.shape[0])
-		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+'5')
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing" + " 5 " + type)
 	plt.legend(loc = 0, mode="expand", ncol= 2)
-	plt.ylabel("Error of Task 5")
+	plt.ylabel("Task 5")
 	print(plt.ylim())
 	plt.ylim((0, 15))
 
@@ -151,7 +151,7 @@ def plot_line3(M1_result1, M1_result2, M1_result3, title, type = "joint", name1 
 	for idx, x in enumerate(tmp):
 		yy = np.arange(x.shape[0])
 		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0)
-	plt.ylabel("Error of Task 3")
+	plt.ylabel("Task 3")
 	print(plt.ylim())
 	plt.ylim((0, 15))
 
@@ -160,8 +160,8 @@ def plot_line3(M1_result1, M1_result2, M1_result3, title, type = "joint", name1 
 	for idx, x in enumerate(tmp):
 		yy = np.arange(x.shape[0])
 		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0)
-	plt.xlabel('Number shifted frame')
-	plt.ylabel("Error of Task 4")
+	plt.xlabel('Frame')
+	plt.ylabel("Task 4")
 	print(plt.ylim())
 	plt.ylim((0, 15))
 	plt.show()

@@ -26,12 +26,12 @@ class arguments(argparse.Namespace):
 
 	AN_length_3D = 135
 	reference  = [0, 497]
-	reference_task4 = [[0, 45], [45, 90], [90, 135]]
+	reference_task4_3D = [[0, 45], [45, 90], [90, 135]]
 
 
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
 	missing_number = [1, 2, 3, 4, 5]
-	missing_joint_partially = 10
+	missing_joint_partially = 5
 
 	target = [0, 50]
 	ingore_confidence = True

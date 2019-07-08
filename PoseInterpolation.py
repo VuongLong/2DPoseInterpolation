@@ -50,7 +50,6 @@ def process_hub5(method = 1, joint = True):
 	for frame_index in range(A.shape[1]):
 		A_temp_zero.append(get_random_joint_partially(A, arg.length, arg.missing_joint_partially, frame_index))
 
-	current_frame_shift = 1
 	for frame_index in range(A.shape[1]):
 		tmpA1 = []
 		tmpA3 = []
@@ -58,11 +57,9 @@ def process_hub5(method = 1, joint = True):
 		tmpA4 = []
 		tmpA40 = []
 		check_shift = True
-		if current_frame_shift == 0:
-			check_shift = False
 		for x in range(1):
 			A1 = np.copy(
-				Tracking2D[arg.reference[0]+shift_A_value*2+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length+shift_A_value*2+current_frame_shift*shift_A1_value]) 
+				Tracking2D[arg.reference[0]+shift_A_value*2:arg.reference[0]+arg.length+shift_A_value*2]) 
 			A1zero = np.copy(A1)
 			A1zero[np.where(A_temp_zero[frame_index] == 0)] = 0
 	
