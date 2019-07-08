@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA.T)
-	A1 = np.copy(AA1.T)
-	A0 = np.copy(AA0.T)
-	AAA = np.copy(AA0.T)
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A0 = np.copy(AA0)
+	AAA = np.copy(AA0)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
 
 
 def reconstruct_interpolate(AA1, Astar, A_MeanMat):
