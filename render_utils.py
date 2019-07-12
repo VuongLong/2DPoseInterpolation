@@ -105,6 +105,21 @@ def export_xls(M1_result1, M1_result2, M1_result3 = None, M2_result1 = None, M2_
 
 	wb.save(str(file_name)+'.xls')
 
+def multi_export_xls(number_result, result, file_name="default"):
+	# Workbook is created 
+	wb = Workbook() 
+	tmp = np.array(result[0]).shape
+	# add_sheet is used to create sheet. 
+	sheet1 = wb.add_sheet('Sheet 1') 
+	space = number_result
+	for x in range(tmp[1]):
+		for y in range(tmp[0]):
+			for i in range(number_result):
+				sheet1.write(x, y*space+i, result[i][y][x]) 
+	
+
+	wb.save(str(file_name)+'.xls')
+
 def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0", name2 = "Error A1", scale = "1"):
 	fig = plt.figure(figsize=(20,10))
 	fig.suptitle(title, fontsize=10)
@@ -112,7 +127,7 @@ def plot_line(M1_result1, M1_result2, title, type = "joint", name1 = "Error A0",
 	plt.subplot(211)
 	for idx, x in enumerate(tmp):
 		yy = np.arange(x.shape[0])
-		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing"+type+' '+str(idx+1))
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing" +type+' '+str(idx+1))
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel(name1)
 	print(plt.ylim())
@@ -139,7 +154,7 @@ def plot_line3(M1_result1, M1_result2, M1_result3, title, type = "joint", name1 
 	plt.subplot(311)
 	for idx, x in enumerate(tmp):
 		yy = np.arange(x.shape[0])
-		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing" + " 5 " + type)
+		plt.plot(yy*scale, x, color = color_plot[idx], marker = '.', linewidth=2.0, label="Number missing 5"+type)
 	plt.legend(loc = 0, mode="expand", ncol= 2)
 	plt.ylabel("Task 5")
 	print(plt.ylim())
