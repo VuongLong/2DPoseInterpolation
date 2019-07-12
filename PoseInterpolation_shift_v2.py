@@ -1,3 +1,4 @@
+# implemention corresponds formula in section Yu - 04th 07 2019
 import numpy as np
 from data_utils import *
 from render_utils import *
