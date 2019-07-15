@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A0 = np.copy(AA0)
-	AAA = np.copy(AA0)
+	A = np.copy(AA.T)
+	A1 = np.copy(AA1.T)
+	A0 = np.copy(AA0.T)
+	AAA = np.copy(AA0.T)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,56 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
+	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+
+
+def get_Tmatrix13(AA, AA1):
+	K = arg.AN_length / arg.length
+	# change AN_length as well as length to ""+3D when run 3D experiments
+	U = mysvd(np.matmul(AA, AA.T))
+	list_A = []
+	list_A0 = []
+	list_U0 = []
+	for i in range(K):
+		l = 50*i+0
+		r = 50*i+50
+		tmp = np.copy(AA[:,l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(AA1 == 0)] = AA1[np.where(AA1 == 0)]
+		list_A0.append(np.copy(tmp))
+		list_U0.append(mysvd(np.matmul(list_A0[i], list_A0[i].T)))
+	UTA = np.hstack([np.matmul(U.T, list_A[i]) for i in range(K)])
+	A0TU0 = np.vstack([np.matmul(list_A0[i].T, list_U0[i]) for i in range(K)])
+
+	U0TA0 = np.hstack([np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)])
+	right_hand = np.matmul(U0TA0, U0TA0.T)
+	right_hand_inv = np.linalg.inv(right_hand)
+	Tmatrix = np.matmul(np.matmul(UTA, A0TU0), right_hand_inv)
+	return Tmatrix.T
+
+def get_Tmatrix24(AA, AA1):
+	K = arg.AN_length / arg.length
+	# change AN_length as well as length to ""+3D when run 3D experiments
+	V = mysvd(np.matmul(AA.T, AA))
+	list_A = []
+	list_A0 = []
+	list_V0 = []
+	for i in range(K):
+		l = 50*i+0
+		r = 50*i+50
+		tmp = np.copy(AA[l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(AA1 == 0)] = AA1[np.where(AA1 == 0)]
+		list_A0.append(np.copy(tmp))
+		list_V0.append(mysvd(np.matmul(list_A0[i].T, list_A0[i])))
+	AV = np.vstack([np.matmul(list_A[i], V) for i in range(K)])
+	V0TA0T = np.hstack([np.matmul(list_V0[i].T, list_A0[i].T) for i in range(K)])
+
+	A0V0 = np.vstack([np.matmul(list_A0[i], list_V0[i]) for i in range(K)])
+	left_hand = np.matmul(A0V0.T, A0V0)
+	left_hand_inv = np.linalg.inv(left_hand)
+	Tmatrix = np.matmul(np.matmul(left_hand_inv, V0TA0T), AV)
+	return Tmatrix
 
 
 def reconstruct_interpolate(AA1, Astar, A_MeanMat):
@@ -55,19 +104,24 @@ def reconstruct_interpolate(AA1, Astar, A_MeanMat):
 	return Astar + A_MeanMat
 
 
-def interpolation_13(AA, AA0, AA1, shift, option = None):
+def interpolation_13(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
+
+
+	# in case of I forget the meaning of AAA
+	# AAA is normalized matrix of A0. this matrix will be used as label of A1
 
 	U = mysvd(np.matmul(A, A.T))
 	U0 = mysvd(np.matmul(A0, A0.T))
-	TMat = np.matmul(U0.T, U)  #U = U0TMat
 	U1 = mysvd(np.matmul(A1, A1.T))
 
-	UTA = np.matmul(U.T, AAA)
-
-	U1TA1_T = np.matmul(U1.T, A1).T
-	X = np.linalg.lstsq(U1TA1_T, UTA.T)
-	TMat1 = X[0]
+	if Tmatrix == None:
+		UTA = np.matmul(U.T, AAA)
+		U1TA1_T = np.matmul(U1.T, A1).T
+		X = np.linalg.lstsq(U1TA1_T, UTA.T)
+		TMat1 = X[0]
+	else:
+		TMat1 = get_Tmatrix13(A, A1)
 
 	TTU1TA1 = np.matmul(TMat1.T, np.matmul(U1.T, A1))
 	TTU0TA0 = np.matmul(TMat1.T, np.matmul(U0.T, A0))
@@ -94,18 +148,20 @@ def interpolation_13(AA, AA0, AA1, shift, option = None):
 	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
 
 
-def interpolation_24(AA, AA0, AA1, shift, option = None):
+def interpolation_24(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
 
 	V = mysvd(np.matmul(A.T, A))
 	V0 = mysvd(np.matmul(A0.T, A0))
-	F = np.matmul(V0.T, V)
 	V1 = mysvd(np.matmul(A1.T, A1))
 
-	AV = np.matmul(AAA, V)
-	A1V1 = np.matmul(A1, V1)
-	X = np.linalg.lstsq(A1V1, AV)
-	F1 = X[0]
+	if Tmatrix == None:
+		AV = np.matmul(AAA, V)
+		A1V1 = np.matmul(A1, V1)
+		X = np.linalg.lstsq(A1V1, AV)
+		F1 = X[0]
+	else:
+		F1 = get_Tmatrix24(A, A1)
 
 	A1V1F = np.matmul(np.matmul(A1, V1), F1)
 	A0V0F = np.matmul(np.matmul(A0, V0), F1)
