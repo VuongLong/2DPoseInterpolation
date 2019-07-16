@@ -69,11 +69,11 @@ def process_hub5(method = 1, joint = True):
 			tmpA3.append(np.around(calculate_mse(A1, A1_star3), decimals = 17))
 
 			# compute F method
-			A1_star4, A0_star4,VTI,A1V1FR,A1_MeanMat = interpolation_24_v2(np.copy(A_N), np.copy(A) ,np.copy(A1zero),
+			A1_star4 = interpolation_24_v3(np.copy(A_N), np.copy(A) ,np.copy(A1zero),
 																shift = check_shift, option = None, Tmatrix = True)
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 17))
 
-			
+
 		# resultA1.append(tmpA1)
 		resultA3.append(tmpA3)
 		resultA4.append(tmpA4)
