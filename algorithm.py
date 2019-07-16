@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A0 = np.copy(AA0)
-	AAA = np.copy(AA0)
+	A = np.copy(AA.T)
+	A1 = np.copy(AA1.T)
+	A0 = np.copy(AA0.T)
+	AAA = np.copy(AA0.T)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
+	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
 
 
 def get_Tmatrix13(AA, AA1):
@@ -335,11 +335,11 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 		for i in range(K):
 			Pi = np.zeros((arg.length, arg.length))
 			for j in range(K):
-				Pi += get_matmul6(list_A0[j].T, list_Unew[counter], list_Unew[counter].T, list_Unew[i], list_Unew[i].T, list_A0[j]) 
+				Pi += get_matmul6(list_A0[j].T, list_Unew[counter], list_Unew[counter].T, list_Unew[i], list_Unew[i].T, list_A0[j])
 			Pi = Pi.reshape(arg.length * arg.length, 1)
 			list_pi.append(Pi)
 			Qi += np.matmul(np.matmul(np.matmul(list_Unew[counter], list_Unew[counter].T), list_A0[i]).T, list_A[i])
-		
+
 		Qi = Qi.reshape(arg.length * arg.length,1)
 		list_qi.append(Qi)
 		ls_left = np.hstack([list_pi[i] for i in range(K)])
@@ -356,8 +356,6 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
 
 	A1 = A1 + A1_MeanMat
-
-	#  for task 5
 
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
 
@@ -439,6 +437,69 @@ def interpolation_24_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
 
 	return A1.T, A0.T, VTI, np.ravel(A1V1F, order='F'), A1_MeanMat
+
+
+# this function according to section Yu 8th July 2019
+def interpolation_24_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
+	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
+
+	V = mysvd(np.matmul(A.T, A))
+	V0 = mysvd(np.matmul(A0.T, A0))
+	V1 = mysvd(np.matmul(A1.T, A1))
+
+	K = arg.AN_length / arg.length
+	# change AN_length as well as length to ""+3D when run 3D experiments
+	ksmall = 0
+	list_A = []
+	list_A0 = []
+	list_V = []
+	list_Vnew = []
+	for i in range(K):
+		l = A1.shape[0]*i+0
+		r = A1.shape[0]*i+A1.shape[0]
+		tmp = np.copy(A[l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(A1 == 0)] = A1[np.where(A1 == 0)]
+		list_A0.append(np.copy(tmp))
+		Vtmp, Sigma, _ = np.linalg.svd(np.matmul(list_A[i].T, list_A[i]))
+		list_V.append(Vtmp)
+		ksmall = max(ksmall, get_zero(Sigma))
+
+	for i in range(K):
+		list_Vnew.append(list_V[i][:,:ksmall])
+
+	list_qi = []
+	list_left = []
+	for counter in range(K):
+		list_pi = []
+		Qi = np.zeros((arg.length, arg.length))
+		for i in range(K):
+			Pi = np.zeros((arg.length, arg.length))
+			for j in range(K):
+				Pi += get_matmul6(list_Vnew[counter], list_Vnew[counter].T, list_A0[j].T, list_A0[j], list_Vnew[i], list_Vnew[i].T)
+			Pi = Pi.reshape(arg.length * arg.length, 1)
+			list_pi.append(Pi)
+			Qi += np.matmul(np.matmul(np.matmul(list_A0[i], list_Vnew[counter]), list_Vnew[counter].T).T, list_A[i])
+
+		Qi = Qi.reshape(arg.length * arg.length,1)
+		list_qi.append(Qi)
+		ls_left = np.hstack([list_pi[i] for i in range(K)])
+		list_left.append(ls_left)
+	left_hand = np.vstack([x for x in list_left])
+	right_hand = np.vstack([x for x in list_qi])
+	F_list = np.linalg.lstsq(left_hand, right_hand)[0]
+
+	A1star = np.zeros(A1.shape)
+	for i in range(K):
+		A1star += F_list[i] * np.matmul(np.matmul(A1, list_Vnew[i]), list_Vnew[i].T)
+
+	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
+
+	A1 = A1 + A1_MeanMat
+
+	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
+
+	return A1.T
 
 
 def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
@@ -535,7 +596,7 @@ def get_remove_row(A, length, num_row_missing):
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(1, length-1):
+		for x in range(0, length):
 			AA[x, index*2] = 0
 			AA[x, index*2+1] = 0
 	return AA
