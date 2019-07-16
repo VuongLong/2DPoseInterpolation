@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA.T)
-	A1 = np.copy(AA1.T)
-	A0 = np.copy(AA0.T)
-	AAA = np.copy(AA0.T)
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A0 = np.copy(AA0)
+	AAA = np.copy(AA0)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
 
 
 def get_Tmatrix13(AA, AA1):
@@ -139,6 +139,11 @@ def get_Tmatrix13_v3(AA, AA1):
 	right_hand_inv = np.linalg.inv(right_hand)
 	Tmatrix = np.matmul(np.matmul(UTA, A0TU0), right_hand_inv)
 	return U_new, Tmatrix.T, ksmall
+
+
+
+def get_matmul6(m1, m2, m3, m4, m5, m6):
+	return np.matmul(m1, np.matmul(m2, np.matmul(m3, np.matmul(m4, np.matmul(m5,m6)))))
 
 
 def get_Tmatrix24(AA, AA1):
@@ -287,6 +292,77 @@ def interpolation_13_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
 
 	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
+
+# this function according to section Yu 8th July 2019
+def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
+	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
+
+
+	U = mysvd(np.matmul(A, A.T))
+	U0 = mysvd(np.matmul(A0, A0.T))
+	U1 = mysvd(np.matmul(A1, A1.T))
+
+	# in case of I forget the meaning of AAA
+	# AAA is normalized matrix of A0. this matrix will be used as label of A1
+
+	K = arg.AN_length / arg.length
+	# change AN_length as well as length to ""+3D when run 3D experiments
+	ksmall = 0
+	list_A = []
+	list_A0 = []
+	list_U = []
+	list_Unew = []
+	for i in range(K):
+		l = arg.length*i+0
+		r = arg.length*i+arg.length
+		tmp = np.copy(A[:,l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(A1 == 0)] = A1[np.where(A1 == 0)]
+		list_A0.append(np.copy(tmp))
+		Utmp, Sigma, _ = np.linalg.svd(np.matmul(list_A[i], list_A[i].T))
+		list_U.append(Utmp)
+		ksmall = max(ksmall, get_zero(Sigma))
+
+	for i in range(K):
+		list_Unew.append(list_U[i][:,:ksmall])
+
+
+	list_qi = []
+	list_left = []
+	for counter in range(K):
+		list_pi = []
+		Qi = np.zeros((arg.length, arg.length))
+		for i in range(K):
+			Pi = np.zeros((arg.length, arg.length))
+			for j in range(K):
+				Pi += get_matmul6(list_A0[j].T, list_Unew[counter], list_Unew[counter].T, list_Unew[i], list_Unew[i].T, list_A0[j]) 
+			Pi = Pi.reshape(arg.length * arg.length, 1)
+			list_pi.append(Pi)
+			Qi += np.matmul(np.matmul(np.matmul(list_Unew[counter], list_Unew[counter].T), list_A0[i]).T, list_A[i])
+		
+		Qi = Qi.reshape(arg.length * arg.length,1)
+		list_qi.append(Qi)
+		ls_left = np.hstack([list_pi[i] for i in range(K)])
+		list_left.append(ls_left)
+
+	left_hand = np.vstack([x for x in list_left])
+	right_hand = np.vstack([x for x in list_qi])
+	T_list = np.linalg.lstsq(left_hand, right_hand)[0]
+
+	A1star = np.zeros(A1.shape)
+	for i in range(K):
+		A1star += T_list[i] * np.matmul(np.matmul(list_Unew[i], list_Unew[i].T), A1)
+
+	A1star = reconstruct_interpolate(AA1, A1star, A1_MeanMat)
+
+	A1 = A1 + A1_MeanMat
+
+	#  for task 5
+
+	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
+
+	return A1.T
+
 
 
 
