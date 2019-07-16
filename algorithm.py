@@ -281,7 +281,7 @@ def get_remove_row(A, length, num_row_missing):
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(0, length):
+		for x in range(1, length-1):
 			AA[x, index*2] = 0
 			AA[x, index*2+1] = 0
 	return AA
@@ -292,7 +292,7 @@ def get_remove_row3D(A, length, num_row_missing):
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(0, length):
+		for x in range(1, length-1):
 			AA[x, index*3] = 0
 			AA[x, index*3+1] = 0
 			AA[x, index*3+2] = 0
