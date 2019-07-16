@@ -1,21 +1,19 @@
-# missing joint over a frame on whole frame
+# missing joint over a frame
 import numpy as np
 from data_utils import *
 from render_utils import *
 from algorithm import *
 from arguments import arg
 import sys
+import random
 
-
-def process_hub5(method = 1, joint = True):
+def process_hub5():
 	resultA1 = []
 	resultA3 = []
 	resultA4 = []
 	resultA30 = []
 	resultA40 = []
-	type_plot = "Frame"
-	if joint:
-		type_plot = "joint"
+	type_plot = "Joint over a Frame"
 	shift_A_value = 23
 	shift_A1_value = 1 # must greater or equal to 1
 	A_N = np.array([])
@@ -40,21 +38,24 @@ def process_hub5(method = 1, joint = True):
 	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value])
 	A_temp_zero = []
 
-	for frame_index in range(A.shape[1]):
-		A_temp_zero.append(get_random_joint_partially(A, arg.length, arg.missing_joint_partially, frame_index))
+	frame_index = random.randint(0,A.shape[0])
+	for joint in range(25):
+		A_temp_zero.append(get_joint_over_Aframe(A, joint+1, frame_index))
 
-	for frame_index in range(A.shape[1]):
+	current_frame_shift = 1
+	for joint in range(25):
 		tmpA1 = []
 		tmpA3 = []
 		tmpA30 = []
 		tmpA4 = []
 		tmpA40 = []
 		check_shift = True
+		# check shift == true mean A1 is same with A
 		for x in range(1):
 			A1 = np.copy(
 				Tracking2D[arg.reference[0]+shift_A_value*2:arg.reference[0]+arg.length+shift_A_value*2])
 			A1zero = np.copy(A1)
-			A1zero[np.where(A_temp_zero[frame_index] == 0)] = 0
+			A1zero[np.where(A_temp_zero[joint] == 0)] = 0
 
 			A1_star3, A0_star3,IUT,TTU1TA1R = interpolation_13(np.copy(A_N3), np.copy(A) ,np.copy(A1zero),
 																shift = check_shift, option = None, Tmatrix = True)
@@ -64,19 +65,17 @@ def process_hub5(method = 1, joint = True):
 																shift = check_shift, option = None, Tmatrix = True)
 			tmpA4.append(np.around(calculate_mse(A1, A1_star4), decimals = 17))
 
-			A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
-			tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
+			# A1_star = interpolation(A1zero, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat)
+			# tmpA1.append(np.around(calculate_mse(A1, A1_star), decimals = 3))
 
-		resultA1.append(tmpA1)
+		# resultA1.append(tmpA1)
 		resultA3.append(tmpA3)
 		resultA4.append(tmpA4)
 
-	file_name = "Task"+str(method)+'_'+type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
-	export_xls(resultA1, resultA3, resultA4, file_name = file_name)
-	#plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
-	plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
-	# plot_line(resultA1, resultA4, file_name+"_cp54", type_plot, name1 = "Error T5", name2 = "Error T4", scale= shift_A1_value)
-	# plot_line(resultA1, resultA3, file_name+"_cp53", type_plot, name1 = "Error T5", name2 = "Error T3", scale= shift_A1_value)
+	file_name = type_plot+'_'+str(arg.length)+'_'+str(arg.AN_length)
+	# export_xls(resultA1, resultA3, resultA4, file_name = file_name)
+	plot_line(resultA3, resultA4, file_name+"_cp34", type_plot, name1 = "Error T3", name2 = "Error T4", scale= shift_A1_value)
+	# plot_line3(resultA1, resultA3, resultA4, file_name+"_cp34", type_plot, scale= shift_A1_value)
 
 
 
@@ -87,10 +86,4 @@ if __name__ == '__main__':
 	full_list = find_full_matrix(Tracking2D, 20)
 	print(full_list)
 
-	# process_hub(method = 3, joint = True)
-	process_hub5(method = 5, joint = True)
-
-	# target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
-
-	# contruct_skeletion_to_video(arg.input_dir, A1_star3, target, arg.output_dir, arg.output_video, arg.ingore_confidence)
-	# show_video(arg.output_dir + '/' + arg.output_video, 200)
+	process_hub5()
