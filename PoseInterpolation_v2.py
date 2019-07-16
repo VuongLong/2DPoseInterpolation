@@ -1,4 +1,4 @@
-# joint over frame
+# missing joint over a frame
 import numpy as np
 from data_utils import *
 from render_utils import *
