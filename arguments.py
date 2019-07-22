@@ -31,7 +31,7 @@ class arguments(argparse.Namespace):
 
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
 	missing_number = [1, 2, 3, 4, 5]
-	missing_joint_partially = 10
+	missing_joint_partially = 5
 
 	target = [0, 50]
 	ingore_confidence = True

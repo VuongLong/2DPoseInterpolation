@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA.T)
-	A1 = np.copy(AA1.T)
-	A0 = np.copy(AA0.T)
-	AAA = np.copy(AA0.T)
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A0 = np.copy(AA0)
+	AAA = np.copy(AA0)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
 
 
 def get_Tmatrix13(AA, AA1):
@@ -74,31 +74,6 @@ def get_Tmatrix13(AA, AA1):
 	return Tmatrix.T
 
 
-# another formula T
-def get_Tmatrix13_v2(AA, AA1):
-	K = arg.AN_length / arg.length
-	# change AN_length as well as length to ""+3D when run 3D experiments
-	U = mysvd(np.matmul(AA, AA.T))
-	list_A = []
-	list_A0 = []
-	list_U0 = []
-	for i in range(K):
-		l = arg.length*i+0
-		r = arg.length*i+arg.length
-		tmp = np.copy(AA[:,l:r])
-		list_A.append(np.copy(tmp))
-		tmp[np.where(AA1 == 0)] = AA1[np.where(AA1 == 0)]
-		list_A0.append(np.copy(tmp))
-		list_U0.append(mysvd(np.matmul(list_A0[i], list_A0[i].T)))
-	UTA = np.hstack([np.matmul(U.T, list_A[i]) for i in range(K)])
-	A0TU0 = np.vstack([np.matmul(list_A0[i].T, list_U0[i]) for i in range(K)])
-
-	U0TA0 = np.hstack([np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)])
-	right_hand = np.matmul(U0TA0, A0TU0)
-	right_hand_inv = np.linalg.inv(right_hand)
-	Tmatrix = np.matmul(np.matmul(UTA, A0TU0), right_hand_inv)
-	return Tmatrix.T
-
 def get_zero(matrix):
 	counter = 0
 	for x in matrix:
@@ -106,7 +81,7 @@ def get_zero(matrix):
 	return matrix.shape[0] - counter
 
 # latest T formula
-def get_Tmatrix13_v3(AA, AA1):
+def get_Tmatrix13_v2(AA, AA1):
 	K = arg.AN_length / arg.length
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	U = mysvd(np.matmul(AA, AA.T))
@@ -210,7 +185,7 @@ def reconstruct_interpolate(AA1, Astar, A_MeanMat):
 	return Astar + A_MeanMat
 
 
-def interpolation_13(AA, AA0, AA1, shift, option = None, Tmatrix = None):
+def interpolation_13(AA, AA0, AA1, shift, option = None):
 	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
 
 
@@ -221,13 +196,10 @@ def interpolation_13(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	U0 = mysvd(np.matmul(A0, A0.T))
 	U1 = mysvd(np.matmul(A1, A1.T))
 
-	if Tmatrix == None:
-		UTA = np.matmul(U.T, AAA)
-		U1TA1_T = np.matmul(U1.T, A1).T
-		X = np.linalg.lstsq(U1TA1_T, UTA.T)
-		TMat1 = X[0]
-	else:
-		TMat1 = get_Tmatrix13_v2(A, A1)
+	UTA = np.matmul(U.T, AAA)
+	U1TA1_T = np.matmul(U1.T, A1).T
+	X = np.linalg.lstsq(U1TA1_T, UTA.T)
+	TMat1 = X[0]
 
 	TTU1TA1 = np.matmul(TMat1.T, np.matmul(U1.T, A1))
 	TTU0TA0 = np.matmul(TMat1.T, np.matmul(U0.T, A0))
@@ -253,7 +225,7 @@ def interpolation_13(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 
 	return A1.T, A0.T, IUT, np.ravel(TTU1TA1, order='F')
 
-def interpolation_13_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
+def interpolation_13_v2(AA, AA0, AA1, shift, option = None):
 	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
 
 
@@ -265,12 +237,12 @@ def interpolation_13_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	U1 = mysvd(np.matmul(A1, A1.T))
 
 
-	U_new, TMat1, ksmall = get_Tmatrix13_v3(A, A1)
+	U_new, TMat1, ksmall = get_Tmatrix13_v2(A, A1)
 	U1_new = np.copy(U1[:, :ksmall])
 	U0_new = np.copy(U0[:, :ksmall])
 
-	TTU1TA1 = np.matmul(TMat1.T, np.matmul(U1_new.T, A1))
-	TTU0TA0 = np.matmul(TMat1.T, np.matmul(U0_new.T, A0))
+	TTU1TA1 = np.matmul(TMat1, np.matmul(U1_new.T, A1))
+	TTU0TA0 = np.matmul(TMat1, np.matmul(U0_new.T, A0))
 	A1star =  np.matmul(np.matmul(np.matmul(U_new, TMat1.T), U1_new.T), A1)
 	A0star =  np.matmul(np.matmul(np.matmul(U_new, TMat1.T), U0_new.T), A0)
 
@@ -286,7 +258,7 @@ def interpolation_13_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	frame_length = A1star.shape[1]
 
 	I = np.eye(frame_length)
-	IUT = np.kron(I, U.T)
+	IUT = np.kron(I, U_new.T)
 
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
@@ -432,7 +404,7 @@ def interpolation_24_v2(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	frame_length = A1star.shape[1]
 
 	I = np.eye(joint_length)
-	VTI = np.kron(V.T, I)
+	VTI = np.kron(V_new.T, I)
 	A1[np.where(AA1.T == 0)] = A1star[np.where(AA1.T == 0)]
 	A0[np.where(AA1.T == 0)] = A0star[np.where(AA1.T == 0)]
 
@@ -596,7 +568,7 @@ def get_remove_row(A, length, num_row_missing):
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(0, length):
+		for x in range(1, length-1):
 			AA[x, index*2] = 0
 			AA[x, index*2+1] = 0
 	return AA
@@ -611,4 +583,19 @@ def get_remove_row3D(A, length, num_row_missing):
 			AA[x, index*3] = 0
 			AA[x, index*3+1] = 0
 			AA[x, index*3+2] = 0
+	return AA
+
+def get_joint_over_Aframe(A, joint_quantity, frame_index):
+	AA = np.copy(A)
+	for x in range(joint_quantity):
+		AA[frame_index, x*2] = 0
+		AA[frame_index, x*2+1] = 0
+	return AA
+
+
+def get_joint_over_Acolumn(A, frame_quantity, joint_index):
+	AA = np.copy(A)
+	for x in range(frame_quantity):
+		AA[x, joint_index*2] = 0
+		AA[x, joint_index*2+1] = 0
 	return AA
