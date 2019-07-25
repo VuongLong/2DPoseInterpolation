@@ -11,10 +11,14 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA.T)
-	A1 = np.copy(AA1.T)
-	A0 = np.copy(AA0.T)
-	AAA = np.copy(AA0.T)
+	A = np.copy(AA)
+	A1 = np.copy(AA1)
+	A0 = np.copy(AA0)
+	AAA = np.copy(AA0)
+	# A = np.copy(AA.T)
+	# A1 = np.copy(AA1.T)
+	# A0 = np.copy(AA0.T)
+	# AAA = np.copy(AA0.T)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +50,9 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+	# return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
+	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
+
 
 
 def get_Tmatrix13(AA, AA1):
@@ -82,7 +88,12 @@ def get_zero(matrix):
 
 # latest T formula
 def get_Tmatrix13_v2(AA, AA1):
-	K = arg.AN_length_3D / arg.length3D
+	length_sequence = arg.AN_length_3D
+	# length_sequence = arg.AN_length
+	length_clip = arg.length3D
+	# length_clip = arg.length
+
+	K = length_sequence / length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	U = mysvd(np.matmul(AA, AA.T))
 	_, Sigma, _ = np.linalg.svd(np.matmul(AA, AA.T))
@@ -92,8 +103,8 @@ def get_Tmatrix13_v2(AA, AA1):
 	list_U0 = []
 	list_U0new = []
 	for i in range(K):
-		l = arg.length3D*i+0
-		r = arg.length3D*i+arg.length3D
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
 		tmp = np.copy(AA[:,l:r])
 		list_A.append(np.copy(tmp))
 		tmp[np.where(AA1 == 0)] = AA1[np.where(AA1 == 0)]
@@ -122,7 +133,12 @@ def get_matmul6(m1, m2, m3, m4, m5, m6):
 
 
 def get_Tmatrix24(AA, AA1):
-	K = arg.AN_length_3D / arg.arg.length3D
+	length_sequence = arg.AN_length_3D
+	# length_sequence = arg.AN_length
+	length_clip = arg.length3D
+	# length_clip = arg.length
+
+	K = length_sequence / length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	V = mysvd(np.matmul(AA.T, AA))
@@ -148,7 +164,12 @@ def get_Tmatrix24(AA, AA1):
 
 
 def get_Tmatrix24_v2(AA, AA1):
-	K = arg.AN_length / arg.length
+	length_sequence = arg.AN_length_3D
+	# length_sequence = arg.AN_length
+	length_clip = arg.length3D
+	# length_clip = arg.length
+
+	K = length_sequence / length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	V = mysvd(np.matmul(AA.T, AA))
 	ksmall = 0
@@ -278,7 +299,12 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	# in case of I forget the meaning of AAA
 	# AAA is normalized matrix of A0. this matrix will be used as label of A1
 
-	K = arg.AN_length / arg.length
+	# length_sequence = arg.AN_length_3D
+	length_sequence = arg.AN_length
+	# length_clip = arg.length3D
+	length_clip = arg.length
+
+	K = length_sequence / length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	ksmall = 0
 	list_A = []
@@ -286,8 +312,8 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	list_U = []
 	list_Unew = []
 	for i in range(K):
-		l = arg.length*i+0
-		r = arg.length*i+arg.length
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
 		tmp = np.copy(A[:,l:r])
 		list_A.append(np.copy(tmp))
 		tmp[np.where(A1 == 0)] = A1[np.where(A1 == 0)]
@@ -295,7 +321,6 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 		Utmp, Sigma, _ = np.linalg.svd(np.matmul(list_A[i], list_A[i].T))
 		list_U.append(Utmp)
 		ksmall = max(ksmall, get_zero(Sigma))
-
 	for i in range(K):
 		list_Unew.append(list_U[i][:,:ksmall])
 
@@ -304,16 +329,16 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	list_left = []
 	for counter in range(K):
 		list_pi = []
-		Qi = np.zeros((arg.length, arg.length))
+		Qi = np.zeros((length_clip, length_clip))
 		for i in range(K):
-			Pi = np.zeros((arg.length, arg.length))
+			Pi = np.zeros((length_clip, length_clip))
 			for j in range(K):
 				Pi += get_matmul6(list_A0[j].T, list_Unew[counter], list_Unew[counter].T, list_Unew[i], list_Unew[i].T, list_A0[j])
-			Pi = Pi.reshape(arg.length * arg.length, 1)
+			Pi = Pi.reshape(length_clip * length_clip, 1)
 			list_pi.append(Pi)
 			Qi += np.matmul(np.matmul(np.matmul(list_Unew[counter], list_Unew[counter].T), list_A0[i]).T, list_A[i])
 
-		Qi = Qi.reshape(arg.length * arg.length,1)
+		Qi = Qi.reshape(length_clip * length_clip,1)
 		list_qi.append(Qi)
 		ls_left = np.hstack([list_pi[i] for i in range(K)])
 		list_left.append(ls_left)
@@ -420,7 +445,12 @@ def interpolation_24_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	V0 = mysvd(np.matmul(A0.T, A0))
 	V1 = mysvd(np.matmul(A1.T, A1))
 
-	K = arg.AN_length / arg.length
+	# length_sequence = arg.AN_length_3D
+	length_sequence = arg.AN_length
+	# length_clip = arg.length3D
+	length_clip = arg.length
+
+	K = length_sequence / length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	ksmall = 0
 	list_A = []
@@ -445,16 +475,16 @@ def interpolation_24_v3(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	list_left = []
 	for counter in range(K):
 		list_pi = []
-		Qi = np.zeros((arg.length, arg.length))
+		Qi = np.zeros((length_clip, length_clip))
 		for i in range(K):
-			Pi = np.zeros((arg.length, arg.length))
+			Pi = np.zeros((length_clip, length_clip))
 			for j in range(K):
 				Pi += get_matmul6(list_Vnew[counter], list_Vnew[counter].T, list_A0[j].T, list_A0[j], list_Vnew[i], list_Vnew[i].T)
-			Pi = Pi.reshape(arg.length * arg.length, 1)
+			Pi = Pi.reshape(length_clip * length_clip, 1)
 			list_pi.append(Pi)
 			Qi += np.matmul(np.matmul(np.matmul(list_A0[i], list_Vnew[counter]), list_Vnew[counter].T).T, list_A[i])
 
-		Qi = Qi.reshape(arg.length * arg.length,1)
+		Qi = Qi.reshape(length_clip * length_clip,1)
 		list_qi.append(Qi)
 		ls_left = np.hstack([list_pi[i] for i in range(K)])
 		list_left.append(ls_left)
@@ -569,18 +599,18 @@ def get_remove_row(A, length, num_row_missing):
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(1, length-1):
+		for x in range(0, length-0):
 			AA[x, index*2] = 0
 			AA[x, index*2+1] = 0
 	return AA
 
 
 def get_remove_row3D(A, length, num_row_missing):
-	number_frame_missing = 10
+	print("entered")
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
-		for x in range(1, length-1):
+		for x in range(0, length-0):
 			AA[x, index*3] = 0
 			AA[x, index*3+1] = 0
 			AA[x, index*3+2] = 0

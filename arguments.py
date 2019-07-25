@@ -15,7 +15,7 @@ class arguments(argparse.Namespace):
 	new_dir3D = output_dir + '/bvh/' + output_video3D+ "_new" + ".bvh"
 	# chuckpangpadNha_Take_001.bvh
 	length = 60
-	length3D = 45
+	length3D = 50
 	# AN_length = 300
 	# reference  = [0, 497]
 	# reference_task4 = [[0, 50], [50, 100], [100, 150],
@@ -24,9 +24,9 @@ class arguments(argparse.Namespace):
 	reference  = [0, 497]
 	reference_task4 = [[0, 60], [60, 120], [120, 180]]
 
-	AN_length_3D = 135
+	AN_length_3D = 150
 	reference  = [0, 497]
-	reference_task4_3D = [[0, 45], [45, 90], [90, 135]]
+	reference_task4_3D = [[0, 50], [50, 100], [100, 150]]
 
 
 	shift_arr = [0, 1, 2, 3, 4, 5, length]
