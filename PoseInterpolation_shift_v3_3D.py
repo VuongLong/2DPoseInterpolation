@@ -23,13 +23,14 @@ def process_hub5(method = 1, joint = True):
 	# A_N is formed by pilling up A0 by N = N/m time.
 	# A_N3 is formed by expanding along wide by K = N/m time
 	A_N = np.array([])
-	for x in arg.reference_task4:
-		tmp = np.copy(Tracking2D[x[0]:x[1]])
+	for x in arg.reference_task4_3D:
+		tmp = np.copy(Tracking3D[x[0]:x[1]])
 		if A_N.shape[0] != 0:
 			A_N = np.concatenate((A_N, tmp), axis = 1)
 		else:
 			A_N = np.copy(tmp)
-	A_N3 = np.copy(Tracking2D[arg.reference[0]:arg.reference[0]+arg.AN_length])
+
+	A_N3 = np.copy(Tracking3D[arg.reference[0]:arg.reference[0]+arg.AN_length_3D])
 
 	tmp_meanVec = np.mean(A_N3,0)
 	A0_mean = np.tile(tmp_meanVec,(arg.length,1))
@@ -40,15 +41,15 @@ def process_hub5(method = 1, joint = True):
 	# option = [AN3_MeanMat, A0_mean] / None for task 3
 	# option = [AN_MeanMat, A0_mean] / None for task 4
 
-	A = np.copy(Tracking2D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length+shift_A_value])
+	A = np.copy(Tracking3D[arg.reference[0]+shift_A_value:arg.reference[0]+arg.length3D+shift_A_value])
 	A_temp_zero = []
 	for num_missing in arg.missing_number:
 		if joint:
-			# A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
-			A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
+			# A_temp_zero.append(get_random_joint3D(A, arg.length3D, num_missing))
+			A_temp_zero.append(get_remove_row3D(A, arg.length3D, num_missing))
 		else:
-			A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
-
+			A_temp_zero.append(get_removed_peice3D(A, arg.length3D, num_missing))
+	
 	for current_frame_shift in range(20):
 		print("current: ", current_frame_shift)
 		tmpA1 = []
@@ -61,7 +62,7 @@ def process_hub5(method = 1, joint = True):
 			check_shift = False
 		for index_A_temp in range(len(arg.missing_number)):
 			A1 = np.copy(
-				Tracking2D[arg.reference[0]+shift_A_value+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length+shift_A_value+current_frame_shift*shift_A1_value])
+				Tracking3D[arg.reference[0]+shift_A_value+current_frame_shift*shift_A1_value:arg.reference[0]+arg.length3D+shift_A_value+current_frame_shift*shift_A1_value])
 			A1zero = np.copy(A1)
 			A1zero[np.where(A_temp_zero[index_A_temp] == 0)] = 0
 
@@ -101,15 +102,8 @@ def process_hub5(method = 1, joint = True):
 
 if __name__ == '__main__':
 
-	Tracking2D  = read_tracking_data(arg.data_dir, arg.ingore_confidence)
-	Tracking2D = Tracking2D.astype(float)
-	full_list = find_full_matrix(Tracking2D, 20)
-	print(full_list)
+	Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+	Tracking3D = Tracking3D.astype(float)
+	predicted_matrix = process_hub5(method = 5, joint = True)
 
-	# process_hub(method = 3, joint = True)
-	process_hub5(method = 5, joint = True)
-
-	# target = [arg.reference[0]+0, arg.reference[0]+arg.length+0]
-
-	# contruct_skeletion_to_video(arg.input_dir, A1_star3, target, arg.output_dir, arg.output_video, arg.ingore_confidence)
-	# show_video(arg.output_dir + '/' + arg.output_video, 200)
+	

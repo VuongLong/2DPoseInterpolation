@@ -11,10 +11,10 @@ def mysvd(dataMat):
 
 
 def deficiency_matrix(AA, AA0, AA1, shift, option = None):
-	A = np.copy(AA)
-	A1 = np.copy(AA1)
-	A0 = np.copy(AA0)
-	AAA = np.copy(AA0)
+	A = np.copy(AA.T)
+	A1 = np.copy(AA1.T)
+	A0 = np.copy(AA0.T)
+	AAA = np.copy(AA0.T)
 	if option == None:
 		A_MeanVec = np.mean(A, 0)
 		A_MeanMat = np.tile(A_MeanVec, (A.shape[0], 1))
@@ -46,7 +46,7 @@ def deficiency_matrix(AA, AA0, AA1, shift, option = None):
 		A1_new = np.copy(A0_new)
 		A1_MeanMat = np.copy(A0_MeanMat)
 
-	return np.copy(A_new.T), np.copy(A0_new.T), np.copy(A1_new.T), np.copy(A1_MeanMat.T), np.copy(A0_MeanMat.T), np.copy(AAA_new.T)
+	return np.copy(A_new), np.copy(A0_new), np.copy(A1_new), np.copy(A1_MeanMat), np.copy(A0_MeanMat), np.copy(AAA_new)
 
 
 def get_Tmatrix13(AA, AA1):
@@ -82,7 +82,7 @@ def get_zero(matrix):
 
 # latest T formula
 def get_Tmatrix13_v2(AA, AA1):
-	K = arg.AN_length / arg.length
+	K = arg.AN_length_3D / arg.length3D
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	U = mysvd(np.matmul(AA, AA.T))
 	_, Sigma, _ = np.linalg.svd(np.matmul(AA, AA.T))
@@ -92,8 +92,8 @@ def get_Tmatrix13_v2(AA, AA1):
 	list_U0 = []
 	list_U0new = []
 	for i in range(K):
-		l = arg.length*i+0
-		r = arg.length*i+arg.length
+		l = arg.length3D*i+0
+		r = arg.length3D*i+arg.length3D
 		tmp = np.copy(AA[:,l:r])
 		list_A.append(np.copy(tmp))
 		tmp[np.where(AA1 == 0)] = AA1[np.where(AA1 == 0)]
@@ -122,7 +122,8 @@ def get_matmul6(m1, m2, m3, m4, m5, m6):
 
 
 def get_Tmatrix24(AA, AA1):
-	K = arg.AN_length / arg.length
+	K = arg.AN_length_3D / arg.arg.length3D
+	# change AN_length as well as length to ""+3D when run 3D experiments
 	# change AN_length as well as length to ""+3D when run 3D experiments
 	V = mysvd(np.matmul(AA.T, AA))
 	list_A = []
@@ -575,7 +576,7 @@ def get_remove_row(A, length, num_row_missing):
 
 
 def get_remove_row3D(A, length, num_row_missing):
-	number_frame_missing = 15
+	number_frame_missing = 10
 	AA = np.copy(A)
 	arr = random.sample(arg.missing_row_arr, num_row_missing)
 	for index in arr:
