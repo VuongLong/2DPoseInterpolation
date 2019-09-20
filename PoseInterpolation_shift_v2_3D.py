@@ -104,8 +104,8 @@ def process_hub5(method = 1, joint = True):
 
 
 if __name__ == '__main__':
-
-	Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+	Tracking3D, restore  = read_tracking_data3D_v2("./data3D/test.txt")
 	Tracking3D = Tracking3D.astype(float)
 	predicted_matrix = process_hub5(method = 5, joint = False)
 

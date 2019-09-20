@@ -44,8 +44,8 @@ def process_hub5(method = 1, joint = True):
 	A_temp_zero = []
 	for num_missing in arg.missing_number:
 		if joint:
-			# A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
-			A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
+			A_temp_zero.append(get_random_joint(A, arg.length, num_missing))
+			# A_temp_zero.append(get_remove_row(A, arg.length, num_missing))
 		else:
 			A_temp_zero.append(get_removed_peice(A, arg.length, num_missing))
 

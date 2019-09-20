@@ -27,17 +27,31 @@ def read_tracking_data3D(data_dir):
 	for line in f:
 		if j > 95:
 			elements = line.split(' ')
-			Tracking3D.append(map(float, elements[:-1]))
+			Tracking3D.append(list(map(float, elements[:-1])))
 		j+=1
 	f.close()
 
 	Tracking3D = np.array(Tracking3D) # list can not read by index while arr can be
-
 	Tracking3D = np.squeeze(Tracking3D)
 	restore = np.copy(Tracking3D)
 	Tracking3D = Tracking3D.reshape(Tracking3D.shape[0], 15, 6)
 	Tracking3D = Tracking3D[..., 0:3]
 	Tracking3D = Tracking3D.reshape(Tracking3D.shape[0],45)
+	return Tracking3D, restore
+
+
+def read_tracking_data3D_v2(data_dir):
+	Tracking3D = []
+	f=open(data_dir, 'r')
+	for line in f:
+		elements = line.split(',')
+		Tracking3D.append(list(map(float, elements)))
+	f.close()
+
+	Tracking3D = np.array(Tracking3D) # list can not read by index while arr can be
+	Tracking3D = np.squeeze(Tracking3D)
+	print(Tracking3D.shape)
+	restore = np.copy(Tracking3D)
 	return Tracking3D, restore
 
 
