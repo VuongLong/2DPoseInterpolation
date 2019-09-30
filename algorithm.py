@@ -492,15 +492,14 @@ def interpolation_13_v5(AA, AA1, data):
 
 def interpolation_13_v6(AA, AA1, data):
 	# count the number of patch in reference
-	length_clip = arg.length3D
+	length_clip = AA1.shape[0]
 	length_sequence = AA.shape[0]
 	K = length_sequence // length_clip 
-	
 	# B = np.copy(AA)
-	# B1 = np.copy(AA[0:arg.length3D])
+	# B1 = np.copy(AA[0:length_clip])
 	
 	# ///////////////////////////////////////////////////////
-	selected_patch = np.copy(AA[0:arg.length3D])
+	selected_patch = np.copy(AA[0:length_clip])
 	max_diff = 1000000000000
 	for i in range(K):
 		l = length_clip*i+0
@@ -820,7 +819,7 @@ def interpolation_24_v6(AA, AA1, data):
 	# B1 = np.copy(AA[:,0:AA1.shape[1]])
 
 	# ///////////////////////////////////////////////////////
-	selected_patch = np.copy(AA[0:arg.length3D])
+	selected_patch = np.copy(AA[0:length_clip])
 	max_diff = 1000000000000
 	for i in range(K):
 		l = AA1.shape[1]*i+0
@@ -830,7 +829,6 @@ def interpolation_24_v6(AA, AA1, data):
 		if tmp_mse < max_diff:
 			max_diff = tmp_mse
 			selected_patch = tmp
-
 	B = np.copy(AA)
 	B1 = selected_patch
 	# ///////////////////////////////////////////////////////
@@ -888,8 +886,6 @@ def interpolation_24_v6(AA, AA1, data):
 	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
 	return result.T
 
-
-
 def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 	A_new = np.copy(A1)
 	A = np.concatenate((IUT, VTI), axis=0)
@@ -918,9 +914,19 @@ def calculate_mse_matrix(X):
 
 
 def calculate_mse_matrix_Yu(X, divide = 1):
-	mse = np.sqrt(np.sum(np.square(X)))/(divide)
+	mse = np.sqrt(np.sum(np.square(X)))
+	mse = mse /(len(X))
 	return mse
 
+
+def calculate_mae_matrix(X):
+	error_sum = np.sum(np.abs(X))
+	mse = np.sum(np.square(X))
+	print("debug")
+	print("mse: ",mse)
+	print("mae: ",error_sum)
+	print("end")
+	return error_sum / len(X)
 
 def get_random_joint(A, length, num_joint_missing):
 	number_frame_missing = 10

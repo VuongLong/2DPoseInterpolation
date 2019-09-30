@@ -8,12 +8,13 @@ import sys
 import random
 
 
-def generate_missing_joint(n, m, frame_length):
+def generate_missing_joint(n, m, frame_length, starting_frame):
 	frames = int(frame_length * 120)
 	matrix = np.ones((n,m))
 	joint_in = []
 	counter = 0
 	number_joint = 3
+	Long_matrix = []
 	while counter < number_joint:
 		counter+=1
 		tmp = random.randint(1, m//3-3)
@@ -27,7 +28,10 @@ def generate_missing_joint(n, m, frame_length):
 			matrix[frame, missing_joint*3] = 0
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
-	return matrix
+			Long_matrix.append([frame+starting_frame, missing_joint*3])
+			Long_matrix.append([frame+starting_frame, missing_joint*3+1])
+			Long_matrix.append([frame+starting_frame, missing_joint*3+2])
+	return matrix, np.asarray(Long_matrix)
 
 
 
@@ -50,6 +54,8 @@ def process_hub5(method = 1, joint = True, data = None):
 	test_patch = [2, 4, 6, 8, 10]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
+	patch_A1_in_refer = 1
+	starting_frame_A1 = test_reference[patch_A1_in_refer][0]
 	for patch in test_patch:
 		lmiss = 1
 		tmpA3 = []
@@ -58,22 +64,22 @@ def process_hub5(method = 1, joint = True, data = None):
 		for times in range(20):
 			print("current: ", patch, times)
 			# select random patch in refer for A1
-			patch_A1_in_refer = random.randint(0,patch-1)
-			starting_frame_A1 = test_reference[patch_A1_in_refer][0]
+			
 			# get data which corespond to starting frame of A1
-			A1 = np.copy(Tracking3D[test_reference[patch-1][0]:test_reference[patch-1][1]])
+			A1 = np.copy(Tracking3D[starting_frame_A1:starting_frame_A1+arg.length3D])
 
 			# generate missing matrix
-			missing_matrix = generate_missing_joint(A1.shape[0], A1.shape[1], lmiss)
+			missing_matrix, Long_matrix = generate_missing_joint(A1.shape[0], A1.shape[1], lmiss, starting_frame_A1)
 			full_matrix = np.ones(Tracking3D[0:test_reference[patch-1][1]].shape)
 			A1zero = np.copy(A1)
 			A1zero[np.where(missing_matrix == 0)] = 0
 			full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 			np.savetxt("./test_data1/"+ str(patch*2) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			np.savetxt("./test_data1/"+ str(patch*2) +"/"+str(times)+ "_map.txt", Long_matrix, fmt = "%d")
 			# fetch the rest of patch for reference AN and AN3
 			A_N = A_N_source
 			A_N3 = A_N3_source
-			for unused_patch in range(number_patch):
+			for unused_patch in range(patch):
 				if unused_patch != patch_A1_in_refer:
 					tmp = np.copy(Tracking3D[test_reference[unused_patch][0]:test_reference[unused_patch][1]])
 					A_N = np.hstack((A_N, tmp))
@@ -81,10 +87,10 @@ def process_hub5(method = 1, joint = True, data = None):
 			print("reference A_N: ",A_N.shape)
 			print("reference A_N3: ",A_N3.shape)
 			A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero), Tracking3D)
-			tmpA3.append(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)], lmiss*120*3*3), decimals = 17))
+			tmpA3.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 			# compute 2nd method
 			A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero), Tracking3D)
-			tmpA4.append(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)], lmiss*120*3*3), decimals = 17))
+			tmpA4.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
 		Tresult = np.asarray(tmpA3).mean()
 		Fresult = np.asarray(tmpA4).mean()

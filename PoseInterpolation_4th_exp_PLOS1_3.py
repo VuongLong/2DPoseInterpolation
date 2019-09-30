@@ -8,7 +8,7 @@ import sys
 import random
 
 
-def generate_missing_joint(n, m, frame_length, number_gap):
+def generate_missing_joint(n, m, frame_length, number_gap, starting_frame):
 	frames = int(frame_length * 120)
 	matrix = np.ones((n,m))
 	counter = 0
@@ -23,7 +23,10 @@ def generate_missing_joint(n, m, frame_length, number_gap):
 			matrix[frame, missing_joint*3] = 0
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
-	return matrix
+			Long_matrix.append([frame+starting_frame, missing_joint*3])
+			Long_matrix.append([frame+starting_frame, missing_joint*3+1])
+			Long_matrix.append([frame+starting_frame, missing_joint*3+2])
+	return matrix, np.asarray(Long_matrix)
 
 
 
@@ -57,28 +60,37 @@ def process_hub5(method = 1, joint = True, data = None):
 		for times in range(20):
 			print("current: ", gap, times)
 
-			patch_missing_gap = []
+			patch_missing_gap = [0]*number_patch
+			tmp_missing_gap = []
 			counter = gap
+			shuffle_arr = [x for x in range(number_patch)]
+			random.shuffle(shuffle_arr)
 			for x in range(number_patch):
-				tmp = random.randint(0,counter)
+				tmp = 10
+				while tmp >= 10:
+					tmp = random.randint(0,counter)
 				counter -= tmp
-				patch_missing_gap.append(tmp)
+				tmp_missing_gap.append(tmp)
 			counter = 0
+			for x in range(number_patch):
+				patch_missing_gap[shuffle_arr[x]] = tmp_missing_gap[x]
 			for x in range(number_patch-1):
 				counter += patch_missing_gap[x]
 			patch_missing_gap[-1] = gap - counter
+			
 
 
 			full_matrix = np.ones(Tracking3D[0:test_reference[number_patch-1][1]].shape)
 			print(patch_missing_gap)
+
 			A_N = A_N_source
 			A_N3 = A_N3_source
 			for x in range(number_patch):
 				if patch_missing_gap[x] > 0:
 					starting_frame_A1 = test_reference[x][0]
 					# generate missing matrix
-					missing_matrix = generate_missing_joint(
-						sample.shape[0], sample.shape[1], lmiss, patch_missing_gap[x])		
+					missing_matrix, Long_matrix = generate_missing_joint(
+						sample.shape[0], sample.shape[1], lmiss, patch_missing_gap[x], starting_frame_A1)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
@@ -88,8 +100,8 @@ def process_hub5(method = 1, joint = True, data = None):
 					A_N3 = np.vstack((A_N3, tmp))
 			print("reference A_N update missing data: ",A_N.shape)
 			print("reference A_N3 update missing data: ",A_N3.shape)
-			np.savetxt("./test_data2/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-			
+			np.savetxt("./test_data2/"+ str(gap) +"/"+str(times)+ "_test.txt", full_matrix, fmt = "%d")
+			np.savetxt("./test_data2/"+ str(gap) +"/"+str(times)+ "_map_test.txt", Long_matrix, fmt = "%d")
 			# interpolation for each patch
 			tmpT = []
 			tmpF = []
@@ -102,10 +114,13 @@ def process_hub5(method = 1, joint = True, data = None):
 					A1zero[np.where(missing_matrix == 0)] = 0
 
 					A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero), Tracking3D)
-					tmpT.append(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)], gap*120*3), decimals = 17))
+					# tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+					print(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+					print(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+					halt
 					# compute 2nd method
 					A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero), Tracking3D)
-					tmpF.append(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)], gap*120*3), decimals = 17))
+					tmpF.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 			tmpA3.append(np.asarray(tmpT).sum())
 			tmpA4.append(np.asarray(tmpF).sum())
 
@@ -133,6 +148,7 @@ if __name__ == '__main__':
 		tmp_AN3.append(A_N3_source)
 	source_AN = np.hstack(tmp_AN)
 	source_AN3 = np.vstack(tmp_AN3)
+	Long_matrix = []
 
 	print("reference source:")
 	print(source_AN.shape)
