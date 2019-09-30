@@ -10,13 +10,17 @@ class arguments(argparse.Namespace):
 
 
 	input_dir3D = './data3D'
-	output_video3D = 'chuckpangpadNha_Take_001'
+	output_video3D = 'ChaiMue_Take_001'
 	# fastsong1_Take_001.bvh 'chuckpangpadNha_Take_001'
 	data_dir3D = input_dir3D + '/' + output_video3D + ".bvh"
 	new_dir3D = output_dir + '/bvh/' + output_video3D+ "_new" + ".bvh"
 	# chuckpangpadNha_Take_001.bvh
-	length = 60
-	
+	length2D = 100
+	reference_2D_source = [[0, 100], [100, 200], [200, 300], [300, 400], [400, 500], [500, 600], 
+	[600, 700], [700, 800], [800, 900], [900, 1000], [1000, 1100], [1100, 1200], [1200, 1300], 
+	[1300, 1400], [1400, 1500], [1500, 1600], [1600, 1700], [1700, 1800], [1800, 1900], [1900, 2000], 
+	[2000, 2100], [2100, 2200], [2200, 2300], [2300, 2400], [2400, 2500], [2500, 2600], [2600, 2700]]
+	test_2D = [[2700, 2997]]
 	# AN_length = 300
 	# reference  = [0, 497]
 	# reference_task4 = [[0, 50], [50, 100], [100, 150],
@@ -39,10 +43,10 @@ class arguments(argparse.Namespace):
 	# AN_length_3D = 2400
 	# # reference_AN  = 1200
 	reference_task4_3D = [[0, 280], [280, 560], [560, 840], [840, 1120], [1120, 1400], [1400, 1680], [1680, 1960], [1960, 2240], [2240, 2520], [2520, 2800]]
-	reference_task4_3D_source = [[2800, 3080], [3080, 3360], [3360, 3640], [3640, 3920], [3920, 4200], [4200, 4480], [4480, 4760], [4760, 5040]]
+	reference_task4_3D_source = [[0, 280], [280, 560], [560, 840], [840, 1120], [1120, 1400], [1400, 1680], [1680, 1960], [1960, 2240], [2240, 2520], [2520, 2800], [2800, 3080], [3080, 3360], [3360, 3640], [3640, 3920], [3920, 4200], [4200, 4480], [4480, 4760], [4760, 5040]]
 
 
-	shift_arr = [0, 1, 2, 3, 4, 5, length]
+	shift_arr = [0, 1, 2, 3, 4, 5]
 	missing_number = [1, 2]
 	missing_joint_partially = 5
 

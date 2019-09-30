@@ -5,7 +5,7 @@ import os
 import xlwt 
 from xlwt import Workbook
 import matplotlib.pyplot as plt
-
+import cv2
 
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [0, 255, 255], \
 		  [85, 0, 255], [0, 255, 0], [255, 0, 170], [255, 0, 0], [0, 255, 255], \
@@ -59,8 +59,8 @@ def contruct_skeletion_to_video(input_dir, Tracking2D, target, output_dir, outpu
 	for i in range(target[0], target[1]):
 		image_file = input_dir + '/images/' + files[i]
 		print(image_file)
-		img = contruct_skeletion_to_image(image_file, Tracking2D[i--target[0]])
-
+		img = contruct_skeletion_to_image(image_file, Tracking2D[i])
+		print("done")
 		out_img = output_dir +'/'+files[i]
 		cv2.imwrite(out_img, img)
 		video.write(img)
