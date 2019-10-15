@@ -54,6 +54,37 @@ def read_tracking_data3D_v2(data_dir):
 	restore = np.copy(Tracking3D)
 	return Tracking3D, restore
 
+def read_tracking_data3D_v3(data_dir):
+	Tracking3D = []
+	f=open(data_dir, 'r')
+	for line in f:
+		elements = line.split(' ')
+		Tracking3D.append(list(map(float, elements)))
+	f.close()
+
+	Tracking3D = np.array(Tracking3D) # list can not read by index while arr can be
+	Tracking3D = np.squeeze(Tracking3D)
+	print(Tracking3D.shape)
+	restore = np.copy(Tracking3D)
+	return Tracking3D, restore
+
+def read_tracking_data3D_nan(data_dir):
+	Tracking3D = []
+	f=open(data_dir, 'r')
+	for line in f:
+		elements = line[:-1].split(',')
+		for x in range(len(elements)):
+			if elements[x] == "NaN":
+				elements[x] = '0'
+		Tracking3D.append(list(map(float, elements)))
+	f.close()
+
+	Tracking3D = np.array(Tracking3D) # list can not read by index while arr can be
+	Tracking3D = np.squeeze(Tracking3D)
+	print(Tracking3D.shape)
+	restore = np.copy(Tracking3D)
+	return Tracking3D, restore
+
 
 def find_full_matrix(Tracking2D, frame_length, overlap=False):
 	count = 0

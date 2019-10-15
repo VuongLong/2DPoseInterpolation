@@ -7,12 +7,11 @@ import sys
 
 if __name__ == '__main__':
 
-	Tracking3D, restore  = read_tracking_data3D_v2("./data3D/BokMue.txt")
+	Tracking3D, restore  = read_tracking_data3D_nan("./weightvector.txt")
 	Tracking3D = Tracking3D.astype(float)
 	# print(Tracking3D.shape)
-	Tracking3D = Tracking3D.T
 	# np.savetxt("checkdata.txt", Tracking3D.T, fmt = "%.3f")
-	f = open("./data3D/BokMue_take_001_Data.txt", "w")
+	f = open("./weightvector.txt", "w")
 	for x in range(Tracking3D.shape[0]):
 		line = ""
 		frame = Tracking3D[x]

@@ -14,24 +14,20 @@ def generate_missing_joint(n, m, frame_length, starting_frame):
 	joint_in = []
 	counter = 0
 	number_joint = 3
-	Long_matrix = []
 	while counter < number_joint:
 		counter+=1
 		tmp = random.randint(1, m//3-3)
 		while tmp in joint_in:
 			tmp = random.randint(1, m//3-3)
+			joint_in.append(tmp)
 
 		start_missing_frame = random.randint(1, n-frames)
 		missing_joint = tmp
-		# print("start_missing_frame: ", start_missing_frame, "joint: ", missing_joint)
 		for frame in range(start_missing_frame, start_missing_frame+frames):
 			matrix[frame, missing_joint*3] = 0
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
-			Long_matrix.append([frame+starting_frame, missing_joint*3])
-			Long_matrix.append([frame+starting_frame, missing_joint*3+1])
-			Long_matrix.append([frame+starting_frame, missing_joint*3+2])
-	return matrix, np.asarray(Long_matrix)
+	return matrix
 
 
 
@@ -51,7 +47,7 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
 
-	test_patch = [2, 4, 6, 8, 10]
+	test_patch = [2]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
 	patch_A1_in_refer = 1
@@ -69,13 +65,13 @@ def process_hub5(method = 1, joint = True, data = None):
 			A1 = np.copy(Tracking3D[starting_frame_A1:starting_frame_A1+arg.length3D])
 
 			# generate missing matrix
-			missing_matrix, Long_matrix = generate_missing_joint(A1.shape[0], A1.shape[1], lmiss, starting_frame_A1)
+			missing_matrix = generate_missing_joint(A1.shape[0], A1.shape[1], lmiss, starting_frame_A1)
 			full_matrix = np.ones(Tracking3D[0:test_reference[patch-1][1]].shape)
 			A1zero = np.copy(A1)
 			A1zero[np.where(missing_matrix == 0)] = 0
 			full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 			np.savetxt("./test_data1/"+ str(patch*2) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-			np.savetxt("./test_data1/"+ str(patch*2) +"/"+str(times)+ "_map.txt", Long_matrix, fmt = "%d")
+			# np.savetxt("./test_data1/"+ str(patch*2) +"/"+str(times)+ "_map.txt", Long_matrix, fmt = "%d")
 			# fetch the rest of patch for reference AN and AN3
 			A_N = A_N_source
 			A_N3 = A_N3_source
@@ -133,7 +129,7 @@ if __name__ == '__main__':
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 		Tracking3D, restore  = read_tracking_data3D_v2(x)
 		Tracking3D = Tracking3D.astype(float)
-		r3, r4 = process_hub5(method = 5, joint = True, data = [source_AN, source_AN3])
+		r3, r4 = process_hub5(method = 5, joint = True, data = None)
 		result.append([r3,r4])
 	for x in range(len(result)):
 		print(result[x])

@@ -13,13 +13,14 @@ def read_data(link):
 	matrix = []
 	f=open(link, 'r')
 	for line in f:
-		elements = line.split(',')
+		elements = line.split(', ')
 		matrix.append(list(map(float, elements)))
 	f.close()
 
 	matrix = np.array(matrix) 
 	matrix = np.squeeze(matrix)
 	print(matrix.shape)
+	np.savetxt("checkData.txt", matrix.T, fmt = "%.2f")
 	return matrix
 
 
@@ -34,15 +35,33 @@ if __name__ == '__main__':
 	# Bvh
 	dad_arr = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [1, 6], [6, 7], [7, 8], [8, 9], [1, 10], 
 	[10, 11], [11, 12], [12, 13], [13, 14], [10, 15], [15, 16], [16, 17], [17, 18]]
-	
-	Tracking3D  = read_data("./data3D/ChaiMue_take_001_Data.txt")
+	# 0 head
+	# 1 neck
+	# 2 LShoulder
+	# 3 LElbow
+	# 4 LWrist
+	# 5
+	# 6 RShoulder
+	# 7 RElbow
+	# 8 RWrist
+	# 9
+	# 10 Midhip
+	# 11 LHip 
+	# 12 LKnee
+	# 13 LAnkle
+	# 14 
+	# 15 RHip
+	# 16 RKnee
+	# 17 RAnkle
+	# 18
+	Tracking3D  = read_data("./Data3D/ChaiMue_take_001_Data.txt")
 	# Tracking3D  = read_data("./result.txt")
 	Tracking3D = Tracking3D.astype(float)
 	# np.savetxt("ChaiMue_take_001_Data.txt", Tracking3D, fmt = "%.3f", delimiter = ", ")
 	fig = plt.figure()
 	fig.set_size_inches(8, 12)
 	ax = fig.add_subplot(111, projection='3d')
-	for index in range(0, Tracking3D.shape[0]):
+	for index in range(0, 1):
 		plt.cla()
 		print(index)
 		frame = Tracking3D[index]
@@ -68,10 +87,13 @@ if __name__ == '__main__':
 		for x in range(len(dad_arr)):
 			dad = dad_arr[x][0]
 			child = dad_arr[x][1]
+			my_color = 'b'
+			if x == 10:
+				my_color = 'g'
 			xxs = [xs[dad],xs[child]]
 			yys = [ys[dad],ys[child]]
 			zzs = [zs[dad],zs[child]]
-			ax.plot(xxs, yys, zzs, 'b')
+			ax.plot(xxs, yys, zzs, my_color)
 
 		ax.plot(xs, ys, zs, 'r.')
 		# CMU

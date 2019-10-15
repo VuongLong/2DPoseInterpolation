@@ -106,7 +106,7 @@ def get_Tmatrix13(AA, AA1):
 def get_zero(matrix):
 	counter = 0
 	for x in matrix:
-		if x >= 1: counter += 1
+		if x > 0.01: counter += 1
 	return counter
 
 # latest T formula
@@ -114,7 +114,7 @@ def get_Tmatrix13_v2(AA, AA1):
 	# length_clip = arg.length
 	# length_sequence = arg.AN_length
 	length_clip = arg.length3D
-	length_sequence = arg.AN_length_3D	
+	length_sequence = AA.shape[1]	
 
 	K = length_sequence // length_clip
 	# change AN_length as well as length to ""+3D when run 3D experiments
@@ -378,12 +378,42 @@ def interpolation_13_v3(AA, AA0, AA1, shift, option = None, missing_number = 0):
 
 	return A1.T
 
-def interpolation_13_v4(AA, AA1, data):
+def interpolation_13_v4(AA, AA1):
 	
 	list_mrow = np.where(~AA1.T.any(axis=1)) 
 	list_frow = np.where(AA1.T.any(axis=1)) 
+
+	# count the number of patch in reference
+	length_clip = AA1.shape[0]
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+	# B = np.copy(AA)
+	# B1 = np.copy(AA[0:length_clip])
+	
+	# ///////////////////////////////////////////////////////
+	selected_patch = np.copy(AA[0:length_clip])
+	max_diff = 1000000000000
+	mse_arr = []
+	tmp_sum = 0
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(AA[l:r])
+		tmp_mse = calculate_mse_patch(tmp, AA1)
+		mse_arr.append(tmp_mse)
+		tmp_sum += tmp_mse
+		if tmp_mse < max_diff:
+			max_diff = tmp_mse
+			selected_patch = tmp
+
+	for x in range(40):
+		AA = np.vstack((AA, selected_patch))
+
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+
 	B = np.copy(AA)
-	B1 = np.copy(data[101:201])
+	B1 = selected_patch
 
 	A_MeanVec = np.mean(B, 0)
 	A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
@@ -398,11 +428,6 @@ def interpolation_13_v4(AA, AA1, data):
 	A1 = np.delete(A1_new.T, list_mrow, 0)
 	A = np.copy(A_new.T)
 	# axis = 1, get zero row
-
-	# count the number of patch in reference
-	length_clip = arg.length3D
-	length_sequence = arg.AN_length_3D	
-	K = length_sequence // length_clip 
 	
 	U = mysvd(np.matmul(A, A.T))
 
@@ -440,7 +465,8 @@ def interpolation_13_v4(AA, AA1, data):
 	alpha1 = np.matmul(U1reduce.T, A1reduce)
 
 	A_missing = np.matmul(np.matmul(U_remain, Tmatrix), alpha1)
-
+	print("T:")
+	check_interpolation(A_missing)
 	tmp = np.zeros(AA1.T.shape)
 	tmp[list_frow] = A1
 	tmp[list_mrow] = A_missing
@@ -452,12 +478,36 @@ def interpolation_13_v4(AA, AA1, data):
 
 
 
-def interpolation_13_v5(AA, AA1, data):
-	
+def interpolation_13_v5(AA, AA1):
+	# np.savetxt("checkmap.txt", AA1, fmt = "%.2f")
 	list_mrow = np.where(~AA1.T.any(axis=1)) 
 	list_frow = np.where(AA1.T.any(axis=1)) 
+	# count the number of patch in reference
+	length_clip = AA1.shape[0]
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+	# B = np.copy(AA)
+	# B1 = np.copy(AA[0:length_clip])
+	
+	# ///////////////////////////////////////////////////////
+	selected_patch = np.copy(AA[0:length_clip])
+	max_diff = 1000000000000
+	mse_arr = []
+	tmp_sum = 0
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(AA[l:r])
+		tmp_mse = calculate_mse_patch(tmp, AA1)
+		mse_arr.append(tmp_mse)
+		tmp_sum += tmp_mse
+		if tmp_mse < max_diff:
+			max_diff = tmp_mse
+			selected_patch = tmp
+	tmp_mean = tmp_sum / K
+
 	B = np.copy(AA)
-	B1 = np.copy(data[401:501])
+	B1 = selected_patch
 
 	A_MeanVec = np.mean(B, 0)
 	A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
@@ -479,18 +529,19 @@ def interpolation_13_v5(AA, AA1, data):
 	c1 = np.matmul(U_remain, U_reduce.T)
 	c2 = np.linalg.inv(np.matmul(U_reduce, U_reduce.T)) 
 	A_missing = np.matmul(np.matmul(c1, c2),A1reduce)
-
+	print("T1:")
+	check_interpolation(A_missing)
 	tmp = np.zeros(AA1.T.shape)
 	tmp[list_frow] = A1
 	tmp[list_mrow] = A_missing
 
 	tmp = tmp + A1_MeanMat.T
 	result = np.copy(AA1.T)
-	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
+	result[np.where(AA1.T == 0)] = selected_patch.T[np.where(AA1.T == 0)]
 	return result.T
 
 
-def interpolation_13_v6(AA, AA1, data):
+def interpolation_13_v6(AA, AA1):
 	# count the number of patch in reference
 	length_clip = AA1.shape[0]
 	length_sequence = AA.shape[0]
@@ -501,17 +552,34 @@ def interpolation_13_v6(AA, AA1, data):
 	# ///////////////////////////////////////////////////////
 	selected_patch = np.copy(AA[0:length_clip])
 	max_diff = 1000000000000
+	mse_arr = []
+	tmp_sum = 0
 	for i in range(K):
 		l = length_clip*i+0
 		r = length_clip*i+length_clip
 		tmp = np.copy(AA[l:r])
-		tmp_mse = calculate_mse(tmp, AA1)
+		tmp_mse = calculate_mse_patch(tmp, AA1)
+		mse_arr.append(tmp_mse)
+		tmp_sum += tmp_mse
 		if tmp_mse < max_diff:
 			max_diff = tmp_mse
 			selected_patch = tmp
+	tmp_mean = tmp_sum / K
 
-	B = np.copy(AA)
+	AA_tmp = selected_patch
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(AA[l:r])
+		if mse_arr[i] < tmp_mean:
+			AA_tmp = np.vstack((AA_tmp, tmp))
+	for x in range(40):
+		AA_tmp = np.vstack((AA_tmp, selected_patch))
+	B = np.copy(AA_tmp)
 	B1 = selected_patch
+
+	length_sequence = AA_tmp.shape[0]
+	K = length_sequence // length_clip 
 	# ///////////////////////////////////////////////////////
 	
 	A_MeanVec = np.mean(B, 0)
@@ -530,9 +598,9 @@ def interpolation_13_v6(AA, AA1, data):
 	A1_MeanMat = np.copy(A1_MeanMat.T)
 	# axis = 1, get zero row
 
-	
-	U = mysvd(np.matmul(A, A.T))
-
+	k = 1000
+	U, UEV, _ = np.linalg.svd(np.matmul(A, A.T))
+	k = min(k , get_zero(UEV))
 	list_A = []
 	list_A0 = []
 	list_U0 = []
@@ -543,8 +611,12 @@ def interpolation_13_v6(AA, AA1, data):
 		list_A.append(np.copy(tmp))
 		tmp[np.where(AA1.T == 0)] = A1[np.where(AA1.T == 0)]
 		list_A0.append(np.copy(tmp))
-		list_U0.append(mysvd(np.matmul(list_A0[-1], list_A0[-1].T)))
-
+		U0tmp, U0EV, _ = np.linalg.svd(np.matmul(list_A0[-1], list_A0[-1].T))
+		list_U0.append(U0tmp)
+		k = min(k, get_zero(U0EV))
+	U = U[:,:k]
+	for x in range(K):
+		list_U0[x] = list_U0[x][:,:k]
 	list_alpha0 = [np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)]
 	list_alpha = [np.matmul(U.T, list_A[i]) for i in range(K)]
 
@@ -556,7 +628,7 @@ def interpolation_13_v6(AA, AA1, data):
 
 	Tmatrix = np.matmul(alpha_alpha0T, np.linalg.inv(alpha0_alpha0T))
 
-	U1 = mysvd(np.matmul(A1, A1.T))
+	U1 = mysvd(np.matmul(A1, A1.T))[:,:k]
 	alpha1 = np.matmul(U1.T, A1)
 
 	A_star = np.matmul(np.matmul(U, Tmatrix), alpha1)
@@ -564,7 +636,271 @@ def interpolation_13_v6(AA, AA1, data):
 	tmp = A_star + A1_MeanMat
 	result = np.copy(AA1.T)
 	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
+	print("T0:")
+	check_interpolation(tmp[np.where(AA1.T == 0)])
 	return result.T
+
+
+
+def interpolation_13_v6_v2(AA, AA1):
+	
+	combine_matrix = np.vstack((AA, AA1))
+	weightScale = 200
+	MMweight = 0.02
+	[frames, columns] = combine_matrix.shape
+	columnindex = np.where(combine_matrix == 0)[1]
+	frameindex = np.where(combine_matrix == 0)[0]
+	columnwithgap = np.unique(columnindex)
+	markerwithgap = np.unique(columnwithgap // 3)
+	framewithgap = np.unique(frameindex)
+	Data_without_gap = np.delete(combine_matrix, columnwithgap, 1)
+	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+	columnWithoutGap = Data_without_gap.shape[1]
+
+	x_index = [x for x in range(0, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+	y_index = [x for x in range(1, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+	z_index = [x for x in range(2, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+	joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+	MeanMat = np.tile(joint_meanXYZ, combine_matrix.shape[1]//3)
+	Data = np.copy(combine_matrix - MeanMat)
+	Data[np.where(combine_matrix == 0)] = 0
+
+	# calculate weight vector 
+	weight_matrix = np.zeros((frames, columns//3))
+	weight_matrix_coe = np.zeros((frames, columns//3))
+	weight_vector = np.zeros((len(markerwithgap), columns//3))
+	for x in range(len(markerwithgap)):
+		weight_matrix = np.zeros((frames, columns//3))
+		weight_matrix_coe = np.zeros((frames, columns//3))
+		for i in range(frames):
+			valid = True
+			if euclid_dist([0, 0, 0] ,get_point(Data, i, markerwithgap[x])) == 0 :
+				valid = False
+			if valid:
+				for j in range(columns//3):
+					if j != markerwithgap[x]:
+						point1 = get_point(Data, i, markerwithgap[x])
+						point2 = get_point(Data, i, j)
+						tmp = 0
+						if euclid_dist(point2, [0, 0, 0]) != 0:
+							weight_matrix[i][j] = euclid_dist(point2, point1)
+							weight_matrix_coe[i][j] = 1
+
+		sum_matrix = np.sum(weight_matrix, 0)
+		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
+		weight_vector_ith = sum_matrix / sum_matrix_coe
+		weight_vector_ith[markerwithgap[x]] = 0
+		weight_vector[x] = weight_vector_ith
+	weight_vector = np.min(weight_vector, 0)
+	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
+	weight_vector[markerwithgap] = MMweight
+	M_zero = np.copy(Data)
+	
+	N_nogap = np.delete(Data, framewithgap, 0)
+	N_zero = np.copy(N_nogap)
+	N_zero[:,columnwithgap] = 0
+	mean_N_nogap = np.mean(N_nogap, 0)
+	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
+	print(mean_N_nogap.shape)
+
+	mean_N_zero = np.mean(N_zero, 0)
+	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
+	print(mean_N_zero.shape)
+
+	stdev_N_no_gaps = np.std(N_nogap, 0)
+	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
+
+	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
+	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
+
+	column_weight = np.ravel(np.ones((3,1)) * weight_vector, order='F')
+	column_weight = column_weight.reshape((1, column_weight.shape[0]))
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	M_zero = np.multiply(((M_zero-m1) / m2),m3)
+	np.savetxt("M_zero.txt", M_zero, fmt = "%.2f")
+	
+	A = np.copy(M_zero[:AA.shape[0]])
+	A1 = np.copy(M_zero[-AA1.shape[0]:])
+	A = np.copy(A.T)
+	A1 = np.copy(A1.T)
+	# axis = 1, get zero row
+
+
+	length_clip = AA1.shape[0]
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+	k = 10000 
+	U, UEV, _ = np.linalg.svd(np.matmul(A, A.T))
+	k = min(k , get_zero(UEV))
+	list_A = []
+	list_A0 = []
+	list_U0 = []
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(A[:,l:r])
+		list_A.append(np.copy(tmp))
+		list_A0.append(np.copy(tmp))
+		U0tmp, U0EV, _ = np.linalg.svd(np.matmul(list_A0[-1], list_A0[-1].T))
+		list_U0.append(U0tmp)
+		k = min(k, get_zero(U0EV))
+	U = U[:,:k]
+	for x in range(K):
+		list_U0[x] = list_U0[x][:,:k]
+	list_alpha0 = [np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)]
+	list_alpha = [np.matmul(U.T, list_A[i]) for i in range(K)]
+
+	alpha_alpha0T = np.zeros(np.matmul(list_alpha[0], list_alpha0[0].T).shape)
+	alpha0_alpha0T = np.zeros(np.matmul(list_alpha0[0], list_alpha0[0].T).shape)
+	for i in range(K):
+		alpha_alpha0T += np.matmul(list_alpha[i], list_alpha0[i].T)
+		alpha0_alpha0T += np.matmul(list_alpha0[i], list_alpha0[i].T)
+
+	Tmatrix = np.matmul(alpha_alpha0T, np.linalg.inv(alpha0_alpha0T))
+
+	U1 = mysvd(np.matmul(A1, A1.T))[:,:k]
+	alpha1 = np.matmul(U1.T, A1)
+
+	A_star = np.matmul(np.matmul(U, Tmatrix), alpha1)
+	reconstructData = np.vstack((A.T, A_star.T))
+
+	m7 = np.ones((Data.shape[0],1))*mean_N_nogap
+	m8 = np.ones((reconstructData.shape[0],1))*stdev_N_no_gaps
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	reconstructData = m7 + (np.multiply(reconstructData, m8) / m3)
+	tmp = reconstructData + MeanMat
+	result = np.copy(tmp[-AA1.shape[0]:])
+
+	final_result = np.copy(AA1)
+	final_result[np.where(AA1 == 0)] = result[np.where(AA1 == 0)]
+	print("T0:")
+	check_interpolation(final_result[np.where(AA1 == 0)])
+	return final_result
+
+
+def get_point(Data, frame, joint):
+	point = [ Data[frame, joint*3] , Data[frame, joint*3+1] , Data[frame, joint*3+2 ]]
+	return point
+
+def interpolation_13_v7(AA, matrix2):
+
+	weightScale = 200
+	MMweight = 0.02
+	DistalThreshold = 0.5
+	MinCumSV = 0.99
+	[frames, columns] = AA.shape
+	columnindex = np.where(AA == 0)[1]
+	frameindex = np.where(AA == 0)[0]
+	columnwithgap = np.unique(columnindex)
+	markerwithgap = np.unique(columnwithgap // 3)
+	framewithgap = np.unique(frameindex)
+	Data_without_gap = np.delete(AA, columnwithgap, 1)
+	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+	columnWithoutGap = Data_without_gap.shape[1]
+
+	x_index = [x for x in range(0, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+	y_index = [x for x in range(1, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+	z_index = [x for x in range(2, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+	joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+	MeanMat = np.tile(joint_meanXYZ, AA.shape[1]//3)
+	Data = np.copy(AA - MeanMat)
+	Data[np.where(AA == 0)] = 0
+	
+	# calculate weight vector 
+	weight_matrix = np.zeros((frames, columns//3))
+	weight_matrix_coe = np.zeros((frames, columns//3))
+	weight_vector = np.zeros((len(markerwithgap), columns//3))
+	for x in range(len(markerwithgap)):
+		weight_matrix = np.zeros((frames, columns//3))
+		weight_matrix_coe = np.zeros((frames, columns//3))
+		for i in range(frames):
+			valid = True
+			if euclid_dist([0, 0, 0] ,get_point(Data, i, markerwithgap[x])) == 0 :
+				valid = False
+			if valid:
+				for j in range(columns//3):
+					if j != markerwithgap[x]:
+						point1 = get_point(Data, i, markerwithgap[x])
+						point2 = get_point(Data, i, j)
+						tmp = 0
+						if euclid_dist(point2, [0, 0, 0]) != 0:
+							weight_matrix[i][j] = euclid_dist(point2, point1)
+							weight_matrix_coe[i][j] = 1
+
+		sum_matrix = np.sum(weight_matrix, 0)
+		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
+		weight_vector_ith = sum_matrix / sum_matrix_coe
+		weight_vector_ith[markerwithgap[x]] = 0
+		weight_vector[x] = weight_vector_ith
+	weight_vector = np.min(weight_vector, 0)
+	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
+	weight_vector[markerwithgap] = MMweight
+	M_zero = np.copy(Data)
+	# N_nogap = np.copy(Data[:Data.shape[0]-AA1.shape[0]])
+	N_nogap = np.delete(Data, framewithgap, 0)
+	N_zero = np.copy(N_nogap)
+	N_zero[:,columnwithgap] = 0
+	
+	mean_N_nogap = np.mean(N_nogap, 0)
+	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
+
+	mean_N_zero = np.mean(N_zero, 0)
+	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
+	stdev_N_no_gaps = np.std(N_nogap, 0)
+	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
+
+
+	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
+	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
+	
+	column_weight = np.ravel(np.ones((3,1)) * weight_vector, order='F')
+	column_weight = column_weight.reshape((1, column_weight.shape[0]))
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	m33 = np.matmul( np.ones((N_nogap.shape[0], 1)), column_weight)
+	m4 = np.ones((N_nogap.shape[0],1))*mean_N_nogap
+	m5 = np.ones((N_nogap.shape[0],1))*stdev_N_no_gaps
+	m6 = np.ones((N_zero.shape[0],1))*mean_N_zero
+
+	M_zero = np.multiply(((M_zero-m1) / m2),m3)
+	N_nogap = np.multiply(((N_nogap-m4)/ m5),m33)
+	N_zero = np.multiply(((N_zero-m6) / m5),m33)
+
+	_, Sigma_nogap , U_N_nogap_VH = np.linalg.svd(N_nogap/np.sqrt(N_nogap.shape[0]-1), full_matrices = False)
+	U_N_nogap = U_N_nogap_VH.T
+	_, Sigma_zero , U_N_zero_VH = np.linalg.svd(N_zero/np.sqrt(N_zero.shape[0]-1), full_matrices = False)
+	U_N_zero = U_N_zero_VH.T
+	ksmall = max(get_zero(Sigma_zero), get_zero(Sigma_nogap))
+	U_N_nogap = U_N_nogap[:, :ksmall]
+	U_N_zero = U_N_zero[:, :ksmall]
+	T_matrix = np.matmul(U_N_nogap.T , U_N_zero)
+	reconstructData = np.matmul(np.matmul(np.matmul(M_zero, U_N_zero), T_matrix), U_N_nogap.T)
+	
+	# reverse normalization
+	m7 = np.ones((Data.shape[0],1))*mean_N_nogap
+	m8 = np.ones((reconstructData.shape[0],1))*stdev_N_no_gaps
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	reconstructData = m7 + (np.multiply(reconstructData, m8) / m3)
+	tmp = reconstructData + MeanMat
+	result = np.copy(tmp)
+
+	final_result = np.copy(matrix2)
+	final_result[np.where(matrix2 == 0)] = result[np.where(matrix2 == 0)]
+	print("T0:")
+	check_interpolation(final_result[np.where(matrix2 == 0)])
+	return final_result
+
 
 def interpolation_24(AA, AA0, AA1, shift, option = None, Tmatrix = None):
 	A, A0, A1, A1_MeanMat, A0_MeanMat, AAA = deficiency_matrix(AA, AA0, AA1, shift, option)
@@ -704,8 +1040,31 @@ def interpolation_24_v4(AA, AA1, data):
 	list_mcol = np.where(~AA1.T.any(axis=0)) 
 	list_fcol = np.where(AA1.T.any(axis=0)) 
 
+	length_clip = AA1.shape[1]
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
+	# B = np.copy(AA)
+	# B1 = np.copy(AA[:,0:AA1.shape[1]])
+
+	# ///////////////////////////////////////////////////////
+	selected_patch = np.copy(AA[0:length_clip])
+	max_diff = 1000000000000
+	for i in range(K):
+		l = AA1.shape[1]*i+0
+		r = AA1.shape[1]*i+AA1.shape[1]
+		tmp = np.copy(AA[:,l:r])
+		tmp_mse = calculate_mse(tmp, AA1)
+		if tmp_mse < max_diff:
+			max_diff = tmp_mse
+			selected_patch = tmp
+
+
+	for x in range(10):
+		AA = np.hstack((AA, selected_patch))
 	B = np.copy(AA)
-	B1 = np.copy(data[401:501])
+	B1 = selected_patch
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
 
 	A_MeanVec = np.mean(B, 0)
 	A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
@@ -720,11 +1079,6 @@ def interpolation_24_v4(AA, AA1, data):
 	A1 = np.delete(A1_new.T, list_mcol, 1)
 	A = np.copy(A_new.T)
 	# axis = 1, get zero row
-
-	# count the number of patch in reference
-	length_clip = arg.length3D
-	length_sequence = arg.AN_length_3D	
-	K = length_sequence // length_clip 
 	
 	V = mysvd(np.matmul(A.T, A))
 	V = V[:,:AA1.shape[1]]
@@ -762,7 +1116,8 @@ def interpolation_24_v4(AA, AA1, data):
 	alpha1 = np.matmul(A1reduce, V1reduce)
 
 	A_missing = np.matmul(np.matmul(alpha1, Fmatrix), V_remain.T)
-
+	print("F:")
+	check_interpolation(A_missing)
 	tmp = np.zeros(AA1.shape)
 	tmp[list_fcol] = A1.T
 	tmp[list_mcol] = A_missing.T
@@ -777,8 +1132,31 @@ def interpolation_24_v5(AA, AA1, data):
 	list_mcol = np.where(~AA1.T.any(axis=0)) 
 	list_fcol = np.where(AA1.T.any(axis=0)) 
 
+	length_clip = AA1.shape[1]
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
+	# B = np.copy(AA)
+	# B1 = np.copy(AA[:,0:AA1.shape[1]])
+
+	# ///////////////////////////////////////////////////////
+	selected_patch = np.copy(AA[0:length_clip])
+	max_diff = 1000000000000
+	for i in range(K):
+		l = AA1.shape[1]*i+0
+		r = AA1.shape[1]*i+AA1.shape[1]
+		tmp = np.copy(AA[:,l:r])
+		tmp_mse = calculate_mse(tmp, AA1)
+		if tmp_mse < max_diff:
+			max_diff = tmp_mse
+			selected_patch = tmp
+
+
+	for x in range(10):
+		AA = np.hstack((AA, selected_patch))
 	B = np.copy(AA)
-	B1 = np.copy(data[401:501])
+	B1 = selected_patch
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
 
 	A_MeanVec = np.mean(B, 0)
 	A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
@@ -801,7 +1179,8 @@ def interpolation_24_v5(AA, AA1, data):
 	c1 = np.matmul(A1reduce, V_reduce)
 	c2 = np.linalg.inv(np.matmul(V_reduce.T, V_reduce))
 	A_missing = np.matmul(np.matmul(c1, c2), V_remain.T)
-
+	print("F1:")
+	check_interpolation(A_missing)
 	tmp = np.zeros(AA1.shape)
 	tmp[list_fcol] = A1.T
 	tmp[list_mcol] = A_missing.T
@@ -811,7 +1190,7 @@ def interpolation_24_v5(AA, AA1, data):
 	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
 	return result.T
 
-def interpolation_24_v6(AA, AA1, data):
+def interpolation_24_v6(AA, AA1):
 	length_clip = AA1.shape[1]
 	length_sequence = AA.shape[1]	
 	K = length_sequence // length_clip 
@@ -829,8 +1208,14 @@ def interpolation_24_v6(AA, AA1, data):
 		if tmp_mse < max_diff:
 			max_diff = tmp_mse
 			selected_patch = tmp
+
+
+	for x in range(10):
+		AA = np.hstack((AA, selected_patch))
 	B = np.copy(AA)
 	B1 = selected_patch
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
 	# ///////////////////////////////////////////////////////
 
 
@@ -883,8 +1268,154 @@ def interpolation_24_v6(AA, AA1, data):
 
 	tmp = A_star + A1_MeanMat
 	result = np.copy(AA1.T)
+	print("F0:")
+	check_interpolation(tmp[np.where(AA1.T == 0)])
 	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
 	return result.T
+
+
+def interpolation_24_v6_v2(AA, AA1):
+
+	combine_matrix = np.hstack((AA, AA1))
+	weightScale = 200
+	MMweight = 0.02
+	[frames, columns] = combine_matrix.shape
+	columnindex = np.where(combine_matrix == 0)[1]
+	frameindex = np.where(combine_matrix == 0)[0]
+	columnwithgap = np.unique(columnindex)
+	markerwithgap = np.unique(columnwithgap // 3)
+	columnwithgap_bypatch = np.copy(columnwithgap - AA.shape[1])
+	markerwithgap_bypatch = np.unique(columnwithgap_bypatch // 3)
+	framewithgap = np.unique(frameindex)
+	Data_without_gap = np.delete(combine_matrix, columnwithgap, 1)
+	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+	columnWithoutGap = Data_without_gap.shape[1]
+
+	x_index = [x for x in range(0, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+	y_index = [x for x in range(1, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+	z_index = [x for x in range(2, columnWithoutGap, 3)]
+	mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+	joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+	MeanMat = np.tile(joint_meanXYZ, combine_matrix.shape[1]//3)
+	Data = np.copy(combine_matrix - MeanMat)
+	Data[np.where(combine_matrix == 0)] = 0
+
+	# calculate weight vector 
+	weight_matrix = np.zeros((frames, columns//3))
+	weight_matrix_coe = np.zeros((frames, columns//3))
+	weight_vector = np.zeros((len(markerwithgap), columns//3))
+	for x in range(len(markerwithgap)):
+		weight_matrix = np.zeros((frames, columns//3))
+		weight_matrix_coe = np.zeros((frames, columns//3))
+		for i in range(frames):
+			valid = True
+			if euclid_dist([0, 0, 0] ,get_point(Data, i, markerwithgap[x])) == 0 :
+				valid = False
+			if valid:
+				for j in range(columns//3):
+					if j != markerwithgap[x]:
+						point1 = get_point(Data, i, markerwithgap[x])
+						point2 = get_point(Data, i, j)
+						tmp = 0
+						if euclid_dist(point2, [0, 0, 0]) != 0:
+							weight_matrix[i][j] = euclid_dist(point2, point1)
+							weight_matrix_coe[i][j] = 1
+
+		sum_matrix = np.sum(weight_matrix, 0)
+		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
+		weight_vector_ith = sum_matrix / sum_matrix_coe
+		weight_vector_ith[markerwithgap[x]] = 0
+		weight_vector[x] = weight_vector_ith
+	weight_vector = np.min(weight_vector, 0)
+	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
+	weight_vector[markerwithgap] = MMweight
+	M_zero = np.copy(Data)
+	
+	N_nogap = np.delete(Data, framewithgap, 0)
+	N_zero = np.copy(N_nogap)
+	N_zero[:,columnwithgap] = 0
+	mean_N_nogap = np.mean(N_nogap, 0)
+	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
+
+	mean_N_zero = np.mean(N_zero, 0)
+	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
+	stdev_N_no_gaps = np.std(N_nogap, 0)
+	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
+
+	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
+	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
+
+	column_weight = np.ravel(np.ones((3,1)) * weight_vector, order='F')
+	column_weight = column_weight.reshape((1, column_weight.shape[0]))
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	M_zero = np.multiply(((M_zero-m1) / m2),m3)
+	tmp = np.copy(M_zero)
+	tmp[:, columnwithgap] = 0
+	A = np.copy(M_zero[:,:AA.shape[1]])
+	A1 = tmp[:, AA.shape[1]:]
+	A = np.copy(A.T)
+	A1 = np.copy(A1.T)
+
+
+	length_clip = AA1.shape[1]
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
+	k = 10000
+	V, VEV, _ = np.linalg.svd(np.matmul(A.T, A))
+	k = min(k , get_zero(VEV))
+
+	list_A = []
+	list_A0 = []
+	list_V0 = []
+	for i in range(K):
+		l = AA1.shape[1]*i+0
+		r = AA1.shape[1]*i+AA1.shape[1]
+		tmp = np.copy(A[l:r])
+		list_A.append(np.copy(tmp))
+		tmp[columnwithgap_bypatch] = 0
+		list_A0.append(np.copy(tmp))
+		V0tmp, V0EV, _ = np.linalg.svd(np.matmul(list_A0[-1].T, list_A0[-1]))
+		list_V0.append(V0tmp)
+		k = min(k, get_zero(V0EV))
+	V = V[:,:k]
+	for x in range(K):
+		list_V0[x] = list_V0[x][:,:k]
+
+	list_alpha0 = [np.matmul(list_A0[i], list_V0[i]) for i in range(K)]
+	list_alpha = [np.matmul(list_A[i], V) for i in range(K)]
+	alpha0Talpha0 = np.zeros(np.matmul(list_alpha0[0].T, list_alpha0[0]).shape)
+	alpha0T_alpha = np.zeros(np.matmul(list_alpha0[0].T, list_alpha[0]).shape)
+	for i in range(K):
+		alpha0Talpha0 += np.matmul(list_alpha0[i].T, list_alpha0[i])
+		alpha0T_alpha += np.matmul(list_alpha0[i].T, list_alpha[i])
+
+	Fmatrix = np.matmul(np.linalg.inv(alpha0Talpha0), alpha0T_alpha )
+
+	V1 = mysvd(np.matmul(A1.T, A1))[:,:k]
+	alpha1 = np.matmul(A1, V1)
+
+	A_star = np.matmul(np.matmul(alpha1, Fmatrix), V.T)
+
+	reconstructData = np.hstack((A.T, A_star.T))
+
+	m7 = np.ones((Data.shape[0],1))*mean_N_nogap
+	m8 = np.ones((reconstructData.shape[0],1))*stdev_N_no_gaps
+	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+	reconstructData = m7 + (np.multiply(reconstructData, m8) / m3)
+	tmp = reconstructData + MeanMat
+	result = np.copy(tmp[:, -AA1.shape[1]:])
+
+	final_result = np.copy(AA1)
+	final_result[np.where(AA1 == 0)] = result[np.where(AA1 == 0)]
+	print("F0:")
+	check_interpolation(final_result[np.where(AA1 == 0)])
+	return final_result
+
 
 def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 	A_new = np.copy(A1)
@@ -897,19 +1428,37 @@ def interpolation(A1, IUT, TTU1TA1R, VTI, A1V1FR, A1_MeanMat):
 	return A_new
 
 
+def check_interpolation(matrix):
+	if np.sum(np.abs(matrix)) <= 0.000001:
+		print("can't interpolated")
+		return
+	print("interpolated successfully")
+	return
+
+def euclid_dist(X, Y):
+	XX = np.asarray(X)
+	YY = np.asarray(Y)
+	return np.sqrt(np.sum(np.square(XX - YY)))
+
+
 def calculate_mse(X, Y):
 	mse = (np.square(X - Y)).mean()
 	mse = (np.sqrt(mse))
 	return mse
 
-
+def calculate_mse_patch(X, Y):
+	XX = np.copy(X[np.where(Y != 0)])
+	YY = np.copy(Y[np.where(Y != 0)])
+	mse = (np.square(XX - YY)).mean()
+	mse = (np.sqrt(mse))
+	return mse
 
 def calculate_mse_matrix(X):
 	mse = (np.square(X))
 	sum_distance = 0
 	for x in range(len(X)//3):
 		sum_distance += np.sqrt(mse[x*3] + mse[x*3+1] + mse[x*3+2])
-	error =  sum_distance / (len(X))
+	error =  sum_distance / (len(X)/3)
 	return error
 
 
