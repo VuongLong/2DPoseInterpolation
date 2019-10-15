@@ -12,10 +12,15 @@ def generate_missing_joint(n, m, frame_length, number_gap, starting_frame):
 	frames = int(frame_length * 120)
 	matrix = np.ones((n,m))
 	counter = 0
+	joint_in = []
 	number_joint = number_gap
 	while counter < number_joint:
 		counter+=1
 		tmp = random.randint(1, m//3-3)
+		while tmp in joint_in:
+			tmp = random.randint(1, m//3-3)
+		joint_in.append(tmp)
+
 		start_missing_frame = random.randint(1, n-frames)
 		missing_joint = tmp
 		# print("start_missing_frame: ", start_missing_frame, "joint: ", missing_joint)
@@ -23,10 +28,7 @@ def generate_missing_joint(n, m, frame_length, number_gap, starting_frame):
 			matrix[frame, missing_joint*3] = 0
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
-			Long_matrix.append([frame+starting_frame, missing_joint*3])
-			Long_matrix.append([frame+starting_frame, missing_joint*3+1])
-			Long_matrix.append([frame+starting_frame, missing_joint*3+2])
-	return matrix, np.asarray(Long_matrix)
+	return matrix
 
 
 
@@ -37,7 +39,6 @@ def process_hub5(method = 1, joint = True, data = None):
 	A_N_source = np.hstack(
 		[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
 	A_N3_source = np.copy(Tracking3D[list_patch[0][0]: list_patch[-1][1]])
-
 	print("original data reference A_N: ",A_N_source.shape)
 	print("original data reference A_N3: ",A_N3_source.shape)
 	if data != None:
@@ -89,7 +90,7 @@ def process_hub5(method = 1, joint = True, data = None):
 				if patch_missing_gap[x] > 0:
 					starting_frame_A1 = test_reference[x][0]
 					# generate missing matrix
-					missing_matrix, Long_matrix = generate_missing_joint(
+					missing_matrix = generate_missing_joint(
 						sample.shape[0], sample.shape[1], lmiss, patch_missing_gap[x], starting_frame_A1)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
@@ -101,7 +102,6 @@ def process_hub5(method = 1, joint = True, data = None):
 			print("reference A_N update missing data: ",A_N.shape)
 			print("reference A_N3 update missing data: ",A_N3.shape)
 			np.savetxt("./test_data2/"+ str(gap) +"/"+str(times)+ "_test.txt", full_matrix, fmt = "%d")
-			np.savetxt("./test_data2/"+ str(gap) +"/"+str(times)+ "_map_test.txt", Long_matrix, fmt = "%d")
 			# interpolation for each patch
 			tmpT = []
 			tmpF = []
@@ -114,10 +114,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					A1zero[np.where(missing_matrix == 0)] = 0
 
 					A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero), Tracking3D)
-					# tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-					print(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-					print(np.around(calculate_mse_matrix_Yu(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-					halt
+					tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 					# compute 2nd method
 					A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero), Tracking3D)
 					tmpF.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
@@ -141,14 +138,13 @@ if __name__ == '__main__':
 		source = source.astype(float)
 		K = source.shape[0] // arg.length3D
 		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-		A_N_source = np.hstack(
+		AN_source = np.hstack(
 			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-		tmp_AN.append(A_N_source)
-		A_N3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-		tmp_AN3.append(A_N3_source)
+		tmp_AN.append(AN_source)
+		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+		tmp_AN3.append(AN3_source)
 	source_AN = np.hstack(tmp_AN)
 	source_AN3 = np.vstack(tmp_AN3)
-	Long_matrix = []
 
 	print("reference source:")
 	print(source_AN.shape)
@@ -158,11 +154,11 @@ if __name__ == '__main__':
 	# data_link = ["./data3D/135_02.txt","./data3D/85_12.txt", "./data3D/HDM_mm_02-02_02_120.txt", "./data3D/HDM_mm_01-02_03_120.txt", "./data3D/HDM_mm_03-02_01_120.txt"]
 	result = []
 	for x in data_link:
-		print("processing: ",x)
+		print(x)
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 		Tracking3D, restore  = read_tracking_data3D_v2(x)
 		Tracking3D = Tracking3D.astype(float)
-		r3, r4 = process_hub5(method = 5, joint = True, data =[source_AN, source_AN3])
+		r3, r4 = process_hub5(method = 5, joint = True, data = [source_AN, source_AN3])
 		result.append([r3,r4])
 	for x in range(len(result)):
 		print(result[x])
