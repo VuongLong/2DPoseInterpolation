@@ -7,6 +7,16 @@ from arguments import arg
 import sys
 import random
 
+def rebuild(matrix1, matrix, list_del):
+	counter = 0
+	result = np.copy(matrix)
+	joint_number = matrix.shape[1]
+	for x in range(joint_number):
+		if x not in list_del:
+			result[:,x] = matrix1[:,counter]
+			counter += 1
+	return result
+
 
 def generate_missing_joint(n, m, frame_length, number_gap):
 	matrix = np.ones((n,m))
@@ -14,10 +24,12 @@ def generate_missing_joint(n, m, frame_length, number_gap):
 	joint_in = []
 	while counter < number_gap:
 		counter+=1
-		tmp = random.randint(0, m//3-3)
-		while tmp in joint_in:
-			tmp = random.randint(0, m//3-3)
-			joint_in.append(tmp)
+		tmp = arg.cheat_array[counter-1]
+		# tmp = np.random.randint(0, m//3)
+		# while tmp in joint_in:
+		# 	tmp = np.random.randint(0, m//3)
+		# 	joint_in.append(tmp)
+			
 		start_missing_frame = np.random.randint(0, n - frame_length)
 		missing_joint = tmp
 		# print("start_missing_frame: ", start_missing_frame, "joint: ", missing_joint)
@@ -25,6 +37,11 @@ def generate_missing_joint(n, m, frame_length, number_gap):
 			matrix[frame, missing_joint*3] = 0
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
+	counter = 0
+	for x in range(n):
+		for y in range(m):
+			if matrix[x][y] == 0: counter +=1
+	print("percent missing: ", 100 * counter / (n*m))
 	return matrix
 
 
@@ -35,6 +52,7 @@ def process_hub5(method = 1, joint = True, data = None):
 	resultA5 = []
 	resultA6 = []
 	resultA7 = []
+	resultA8 = []
 	list_patch = arg.reference_task4_3D_source
 	list_patch = arg.reference_task4_3D_source
 	if len(list_patch) > 0:
@@ -56,13 +74,13 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
 
-	length_missing = [10]
-	# length_missing = [10, 20, 50, 70]
+	# length_missing = [10]
+	length_missing = [1]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
 	sample = np.copy(Tracking3D[test_reference[0][0]:test_reference[0][1]])
 	patch_missing = 0
-	
+
 	for lmiss in length_missing:
 		nframe = lmiss
 		tmpA3 = []
@@ -70,7 +88,8 @@ def process_hub5(method = 1, joint = True, data = None):
 		tmpA5 = []
 		tmpA6 = []
 		tmpA7 = []
-		for times in range(10):
+		tmpA8 = []
+		for times in range(1):
 			print("current: ", lmiss, times)
 			# patch_arr = [0]*number_patch
 			# missing_gap_arr = []
@@ -101,7 +120,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					print("patch add to missing: ", x)
 					# generate missing matrix
 					missing_matrix = generate_missing_joint(
-						sample.shape[0], sample.shape[1], lmiss, 3)		
+						sample.shape[0], sample.shape[1], lmiss, 1)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
@@ -120,6 +139,7 @@ def process_hub5(method = 1, joint = True, data = None):
 			tmpG = []
 			tmpH = []
 			tmpJ = []
+			tmpK = []
 			for x in range(number_patch):
 				if patch_arr[x] > 0:
 					# get data which corespond to starting frame of A1
@@ -130,70 +150,93 @@ def process_hub5(method = 1, joint = True, data = None):
 					# np.savetxt("original.txt", A1, fmt = "%.2f")
 					# np.savetxt("zero.txt", A1zero, fmt = "%.2f")
 
-					A1_star4 = interpolation_13_v7(np.copy(A1zero), np.copy(A1zero))
+					
+
+					# A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
+					# tmpT.append(np.around(calculate_mae_matrix(
+					# 	A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+
+					A1_star4 = interpolation_13_v6_v3(np.copy(A_N3),np.copy(A1zero))
 					tmpF.append(np.around(calculate_mae_matrix(
 						A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+					# np.savetxt("recover.txt", A1_star4, fmt = "%.2f")
 					
 
-					A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
-					tmpT.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-					# np.savetxt("recover.txt", A1_star3, fmt = "%.2f")
-
-					
-
-					A1_star5 = interpolation_13_v2(np.vstack((A_N3, A1zero)), np.copy(A1zero))
-					tmpG.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
+					# A1_star5 = interpolation_13_v6_v3(np.copy(A_N3), np.copy(A1zero))
+					# tmpG.append(np.around(calculate_mae_matrix(
+					# 	A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
 
 					# compute 2nd method
-					A1_star6 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-					tmpH.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+					# A1_star6 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+					# tmpH.append(np.around(calculate_mae_matrix(
+					# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+
+					A1_star8 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+					tmpK.append(np.around(calculate_mae_matrix(
+						A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+
 
 					A1_star7 = interpolation_24_v6_v2(np.copy(A_N),np.copy(A1zero))
 					tmpJ.append(np.around(calculate_mae_matrix(
 						A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
+					
 
-			tmpA3.append(np.asarray(tmpT).sum())
+			# tmpA3.append(np.asarray(tmpT).sum())
 			tmpA4.append(np.asarray(tmpF).sum())
-			tmpA5.append(np.asarray(tmpG).sum())
-			tmpA6.append(np.asarray(tmpH).sum())
+			# tmpA5.append(np.asarray(tmpG).sum())
+			# tmpA6.append(np.asarray(tmpH).sum())
 			tmpA7.append(np.asarray(tmpJ).sum())
+			tmpA8.append(np.asarray(tmpK).sum())
 
-		resultA3.append(np.asarray(tmpA3).mean())
+		# resultA3.append(np.asarray(tmpA3).mean())
 		resultA4.append(np.asarray(tmpA4).mean())
-		resultA5.append(np.asarray(tmpA5).mean())
-		resultA6.append(np.asarray(tmpA6).mean())
+		# resultA5.append(np.asarray(tmpA5).mean())
+		# resultA6.append(np.asarray(tmpA6).mean())
 		resultA7.append(np.asarray(tmpA7).mean())
-	return resultA3, resultA4, resultA5, resultA6, resultA7
+		resultA8.append(np.asarray(tmpA8).mean())
+	return [0, resultA4, 0], [0, resultA8, resultA7]
 
+def remove_joint(data):
+	list_del = []
+	list_del_joint = [5, 9, 14, 18]
 
+	for x in list_del_joint:
+		list_del.append(x*3)
+		list_del.append(x*3+1)
+		list_del.append(x*3+2)
+	data = np.delete(data, list_del, 1)
+	print(data.shape)
+	return data 
 
 if __name__ == '__main__':
 
-	# refer_link = ["./data3D/data/08_01.txt", "./data3D/data/07_01.txt"]
-	# tmp_AN = []
-	# tmp_AN3= []
-	# for x in refer_link:
-	# 	print("reading source: ", x)
-	# 	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
-	# 	source , _  = read_tracking_data3D_v2(x)
-	# 	source = source.astype(float)
-	# 	K = source.shape[0] // arg.length3D
-	# 	list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-	# 	A_N_source = np.hstack(
-	# 		[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-	# 	tmp_AN.append(A_N_source)
-	# 	A_N3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-	# 	tmp_AN3.append(A_N3_source)
-	# source_AN = np.hstack(tmp_AN)
-	# source_AN3 = np.vstack(tmp_AN3)
+	refer_link = ["./data3D/fastsong2.txt","./data3D/fastsong3.txt","./data3D/fastsong4.txt","./data3D/fastsong5.txt","./data3D/fastsong6.txt"]
+	resource_refer = [[0, 300], [0, 600], [80, 380], [0, 500], [0, 600]]
+	tmp_AN = []
+	tmp_AN3= []
+	counter = 0
+	for x in refer_link:
+		print("reading source: ", x)
+		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+		source , _  = read_tracking_data3D_v2(x)
+		source = remove_joint(source)
+		source = source.astype(float)
+		source = source[resource_refer[counter][0]:resource_refer[counter][1]]
+		counter += 1
+		K = source.shape[0] // arg.length3D
+		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
+		AN_source = np.hstack(
+			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
+		tmp_AN.append(AN_source)
+		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+		tmp_AN3.append(AN3_source)
+	source_AN = np.hstack(tmp_AN)
+	source_AN3 = np.vstack(tmp_AN3)
 
-	# print("reference source:")
-	# print(source_AN.shape)
-	# print(source_AN3.shape)
+	print("reference source:")
+	print(source_AN.shape)
+	print(source_AN3.shape)
 
 	data_link = ["./data3D/fastsong7.txt"]
 	# data_link = ["./data3D/135_02.txt","./data3D/85_12.txt", "./data3D/HDM_mm_02-02_02_120.txt", "./data3D/HDM_mm_01-02_03_120.txt", "./data3D/HDM_mm_03-02_01_120.txt"]
@@ -202,8 +245,11 @@ if __name__ == '__main__':
 		print(x)
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 		Tracking3D, _  = read_tracking_data3D_v2(x)
+		Tracking3D = remove_joint(Tracking3D)
+		# np.savetxt("data_forLong.txt", Tracking3D, fmt = "%.4f")
+		# halt
 		Tracking3D = Tracking3D.astype(float)
-		r3, r4, r5, r6, r7 = process_hub5(method = 5, joint = True, data = None)
-		result.append([r3,r4, r5, r6, r7])
+		rT, rF = process_hub5(method = 5, joint = True, data = None)
+		result.append([rT, rF])
 	for x in range(len(result)):
 		print(result[x])

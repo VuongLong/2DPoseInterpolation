@@ -549,36 +549,121 @@ def interpolation_13_v6(AA, AA1):
 	# B = np.copy(AA)
 	# B1 = np.copy(AA[0:length_clip])
 	
+	# # ///////////////////////////////////////////////////////
+	# selected_patch = np.copy(AA[0:length_clip])
+	# max_diff = 1000000000000
+	# mse_arr = []
+	# for i in range(K):
+	# 	l = length_clip*i+0
+	# 	r = length_clip*i+length_clip
+	# 	tmp = np.copy(AA[l:r])
+	# 	tmp_mse = calculate_mse_patch(tmp, AA1)
+	# 	mse_arr.append(tmp_mse)
+	# 	if tmp_mse < max_diff:
+	# 		max_diff = tmp_mse
+	# 		selected_patch = tmp
+
+	# B = np.copy(AA)
+	# B1 = selected_patch
+
+	# length_sequence = AA.shape[0]
+	# K = length_sequence // length_clip 
+	# # ///////////////////////////////////////////////////////
+	
+	# A_MeanVec = np.mean(B, 0)
+	# A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
+	# A_new = np.copy(B - A_MeanMat)
+
+	# A1_MeanVec = np.mean(B1, 0)
+	# A1_MeanMat = np.tile(A1_MeanVec, (B1.shape[0], 1))
+	# A1_new = np.copy(AA1 - A1_MeanMat)
+	# A1_new[np.where(AA1 == 0)] = 0
+	## np.savetxt("checkA1.txt", A1_MeanMat, fmt = "%.2f")
+	## halt
+
+	A_MeanVec = np.mean(AA, 0)
+	A_MeanMat = np.tile(A_MeanVec, (AA.shape[0], 1))
+	A_new = np.copy(AA - A_MeanMat)
+
+	A1_MeanVec = AA1.sum(0) / (AA1 != 0).sum(0)
+	A1_MeanMat = np.tile(A1_MeanVec,(AA1.shape[0], 1))
+	A1_new = np.copy(AA1 - A1_MeanMat)
+	A1_new[np.where(AA1 == 0)] = 0
+	
+	A = np.copy(A_new.T)
+	A1 = np.copy(A1_new.T)
+	A1_MeanMat = np.copy(A1_MeanMat.T)
+	# axis = 1, get zero row
+	# ksmall = 0 
+
+	U, UEV, _ = np.linalg.svd(np.matmul(A, A.T))
+	# matrix_check = np.matmul(A, A.T)
+	# np.savetxt("Sigma.txt", UEV, fmt = "%.2f")
+	# np.savetxt("checkA.txt", A.T, fmt = "%.2f")
+	# np.savetxt("checkA1.txt", matrix_check, fmt = "%.2f")
+	# halt
+	# ksmall = max(get_zero())
+	list_A = []
+	list_A0 = []
+	list_U0 = []
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(A[:,l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(AA1.T == 0)] = 0
+		list_A0.append(np.copy(tmp))
+		U0tmp, U0EV, _ = np.linalg.svd(np.matmul(list_A0[-1], list_A0[-1].T))
+		list_U0.append(U0tmp)
+
+	list_alpha0 = [np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)]
+	list_alpha = [np.matmul(U.T, list_A[i]) for i in range(K)]
+
+	alpha_alpha0T = np.zeros(np.matmul(list_alpha[0], list_alpha0[0].T).shape)
+	alpha0_alpha0T = np.zeros(np.matmul(list_alpha0[0], list_alpha0[0].T).shape)
+	for i in range(K):
+		alpha_alpha0T += np.matmul(list_alpha[i], list_alpha0[i].T)
+		alpha0_alpha0T += np.matmul(list_alpha0[i], list_alpha0[i].T)
+
+	Tmatrix = np.matmul(alpha_alpha0T, np.linalg.inv(alpha0_alpha0T))
+
+	U1 = mysvd(np.matmul(A1, A1.T))
+	alpha1 = np.matmul(U1.T, A1)
+
+	A_star = np.matmul(np.matmul(U, Tmatrix), alpha1)
+	tmp = A_star + A1_MeanMat
+	result = np.copy(AA1.T)
+	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
+	print("T0:")
+	check_interpolation(tmp[np.where(AA1.T == 0)])
+	return result.T
+
+def interpolation_13_v6_v3(AA, AA1):
+	# count the number of patch in reference
+	length_clip = AA1.shape[0]
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+	# B = np.copy(AA)
+	# B1 = np.copy(AA[0:length_clip])
+	
 	# ///////////////////////////////////////////////////////
 	selected_patch = np.copy(AA[0:length_clip])
 	max_diff = 1000000000000
 	mse_arr = []
-	tmp_sum = 0
 	for i in range(K):
 		l = length_clip*i+0
 		r = length_clip*i+length_clip
 		tmp = np.copy(AA[l:r])
 		tmp_mse = calculate_mse_patch(tmp, AA1)
 		mse_arr.append(tmp_mse)
-		tmp_sum += tmp_mse
 		if tmp_mse < max_diff:
 			max_diff = tmp_mse
 			selected_patch = tmp
-	tmp_mean = tmp_sum / K
 
-	AA_tmp = selected_patch
-	for i in range(K):
-		l = length_clip*i+0
-		r = length_clip*i+length_clip
-		tmp = np.copy(AA[l:r])
-		if mse_arr[i] < tmp_mean:
-			AA_tmp = np.vstack((AA_tmp, tmp))
-	for x in range(40):
-		AA_tmp = np.vstack((AA_tmp, selected_patch))
-	B = np.copy(AA_tmp)
+	B = np.copy(AA)
 	B1 = selected_patch
 
-	length_sequence = AA_tmp.shape[0]
+	length_sequence = AA.shape[0]
 	K = length_sequence // length_clip 
 	# ///////////////////////////////////////////////////////
 	
@@ -588,7 +673,7 @@ def interpolation_13_v6(AA, AA1):
 
 	A1_MeanVec = np.mean(B1, 0)
 	A1_MeanMat = np.tile(A1_MeanVec, (B1.shape[0], 1))
-	A1_new = np.copy(B1 - A1_MeanMat)
+	A1_new = np.copy(AA1 - A1_MeanMat)
 	A1_new[np.where(AA1 == 0)] = 0
 	# # np.savetxt("checkA1.txt", A1_MeanMat, fmt = "%.2f")
 	# # halt
@@ -597,7 +682,6 @@ def interpolation_13_v6(AA, AA1):
 	A1 = np.copy(A1_new.T)
 	A1_MeanMat = np.copy(A1_MeanMat.T)
 	# axis = 1, get zero row
-
 	k = 1000
 	U, UEV, _ = np.linalg.svd(np.matmul(A, A.T))
 	k = min(k , get_zero(UEV))
@@ -639,8 +723,6 @@ def interpolation_13_v6(AA, AA1):
 	print("T0:")
 	check_interpolation(tmp[np.where(AA1.T == 0)])
 	return result.T
-
-
 
 def interpolation_13_v6_v2(AA, AA1):
 	
@@ -707,11 +789,9 @@ def interpolation_13_v6_v2(AA, AA1):
 	N_zero[:,columnwithgap] = 0
 	mean_N_nogap = np.mean(N_nogap, 0)
 	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
-	print(mean_N_nogap.shape)
 
 	mean_N_zero = np.mean(N_zero, 0)
 	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
-	print(mean_N_zero.shape)
 
 	stdev_N_no_gaps = np.std(N_nogap, 0)
 	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
@@ -723,7 +803,6 @@ def interpolation_13_v6_v2(AA, AA1):
 	column_weight = column_weight.reshape((1, column_weight.shape[0]))
 	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
 	M_zero = np.multiply(((M_zero-m1) / m2),m3)
-	np.savetxt("M_zero.txt", M_zero, fmt = "%.2f")
 	
 	A = np.copy(M_zero[:AA.shape[0]])
 	A1 = np.copy(M_zero[-AA1.shape[0]:])
@@ -1197,39 +1276,51 @@ def interpolation_24_v6(AA, AA1):
 	# B = np.copy(AA)
 	# B1 = np.copy(AA[:,0:AA1.shape[1]])
 
-	# ///////////////////////////////////////////////////////
-	selected_patch = np.copy(AA[0:length_clip])
-	max_diff = 1000000000000
-	for i in range(K):
-		l = AA1.shape[1]*i+0
-		r = AA1.shape[1]*i+AA1.shape[1]
-		tmp = np.copy(AA[:,l:r])
-		tmp_mse = calculate_mse(tmp, AA1)
-		if tmp_mse < max_diff:
-			max_diff = tmp_mse
-			selected_patch = tmp
+	# # ///////////////////////////////////////////////////////
+	# selected_patch = np.copy(AA[0:length_clip])
+	# max_diff = 1000000000000
+	# for i in range(K):
+	# 	l = AA1.shape[1]*i+0
+	# 	r = AA1.shape[1]*i+AA1.shape[1]
+	# 	tmp = np.copy(AA[:,l:r])
+	# 	tmp_mse = calculate_mse(tmp, AA1)
+	# 	if tmp_mse < max_diff:
+	# 		max_diff = tmp_mse
+	# 		selected_patch = tmp
 
 
-	for x in range(10):
-		AA = np.hstack((AA, selected_patch))
-	B = np.copy(AA)
-	B1 = selected_patch
-	length_sequence = AA.shape[1]	
-	K = length_sequence // length_clip 
-	# ///////////////////////////////////////////////////////
+	# for x in range(10):
+	# 	AA = np.hstack((AA, selected_patch))
+	# B = np.copy(AA)
+	# B1 = selected_patch
+	# length_sequence = AA.shape[1]	
+	# K = length_sequence // length_clip 
+	# # ///////////////////////////////////////////////////////
 
 
-	A_MeanVec = np.mean(B, 0)
-	A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
-	A_new = np.copy(B - A_MeanMat)
+	# A_MeanVec = np.mean(B, 0)
+	# A_MeanMat = np.tile(A_MeanVec, (B.shape[0], 1))
+	# A_new = np.copy(B - A_MeanMat)
 
-	A1_MeanVec = np.mean(B1, 0)
-	A1_MeanMat = np.tile(A1_MeanVec, (B1.shape[0], 1))
-	A1_new = np.copy(B1 - A1_MeanMat)
-	A1_new[np.where(AA1 == 0)] = 0
+	# A1_MeanVec = np.mean(B1, 0)
+	# A1_MeanMat = np.tile(A1_MeanVec, (B1.shape[0], 1))
+	# A1_new = np.copy(AA1 - A1_MeanMat)
+	# A1_new[np.where(AA1 == 0)] = 0
 	# # np.savetxt("checkA1.txt", A1_MeanMat, fmt = "%.2f")
 	# # halt
+	columnindex = np.where(AA1 == 0)[1]
+	columnwithgap = np.unique(columnindex)
 
+	A_MeanVec = np.mean(AA, 0)
+	A_MeanMat = np.tile(A_MeanVec, (AA.shape[0], 1))
+	A_new = np.copy(AA - A_MeanMat)
+
+	A1_MeanVec = AA1.sum(0) / (AA1 != 0).sum(0)
+	A1_MeanMat = np.tile(A1_MeanVec,(AA1.shape[0], 1))
+	A1_new = np.copy(AA1 - A1_MeanMat)
+	# A1_new[:, columnwithgap] = 0
+	A1_new[np.where(AA1 == 0)] = 0
+	
 	A = np.copy(A_new.T)
 	A1 = np.copy(A1_new.T)
 	A1_MeanMat = np.copy(A1_MeanMat.T)
@@ -1247,7 +1338,8 @@ def interpolation_24_v6(AA, AA1):
 		r = AA1.shape[1]*i+AA1.shape[1]
 		tmp = np.copy(A[l:r])
 		list_A.append(np.copy(tmp))
-		tmp[np.where(AA1.T == 0)] = A1[np.where(AA1.T == 0)]
+		# tmp[:, columnwithgap] = 0
+		tmp[np.where(AA1.T == 0)] = 0
 		list_A0.append(np.copy(tmp))
 		list_V0.append(mysvd(np.matmul(list_A0[-1].T, list_A0[-1])))
 

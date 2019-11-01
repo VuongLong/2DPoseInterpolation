@@ -59,6 +59,7 @@ class arguments(argparse.Namespace):
 	reference_task4_3D = [[450, 550]]
 	reference_task4_3D_source = [[50, 150], [150, 250], [250, 350], [350, 450], [550, 650], [650, 750], [750, 850]]
 
+	cheat_array = [0, 1, 2, 3, 14, 10, 6, 9]
 
 	shift_arr = [0, 1, 2, 3, 4, 5]
 	missing_number = [1, 2]
