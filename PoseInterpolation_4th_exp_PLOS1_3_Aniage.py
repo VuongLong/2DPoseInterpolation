@@ -15,10 +15,7 @@ def generate_missing_joint(n, m, frame_length, number_gap):
 	joint_in = []
 	while counter < number_gap:
 		counter+=1
-		tmp = random.randint(1, m//3-3)
-		while tmp in joint_in:
-			tmp = random.randint(1, m//3-3)
-		joint_in.append(tmp)
+		tmp = arg.cheat_array[counter-1]
 
 		start_missing_frame = random.randint(1, n-frames)
 		missing_joint = tmp
@@ -34,6 +31,7 @@ def generate_missing_joint(n, m, frame_length, number_gap):
 def process_hub5(method = 1, joint = True, data = None):
 	resultA3 = []
 	resultA4 = []
+	resultA5 = []
 	list_patch = arg.reference_task4_3D_source
 	list_patch = arg.reference_task4_3D_source
 	if len(list_patch) > 0:
@@ -65,6 +63,7 @@ def process_hub5(method = 1, joint = True, data = None):
 		lmiss = 1
 		tmpA3 = []
 		tmpA4 = []
+		tmpA5 = []
 		for times in range(20):
 			print("current: ", gap, times)
 
@@ -113,6 +112,7 @@ def process_hub5(method = 1, joint = True, data = None):
 			# interpolation for each patch
 			tmpT = []
 			tmpF = []
+			tmpG = []
 			for x in range(number_patch):
 				if patch_arr[x] > 0:
 				# get data which corespond to starting frame of A1
@@ -124,8 +124,9 @@ def process_hub5(method = 1, joint = True, data = None):
 					A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
 					tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 					# compute 2nd method
-					A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+					A1_star4 = interpolation_24_v6_v2(np.copy(A_N),np.copy(A1zero))
 					tmpF.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+
 			tmpA3.append(np.asarray(tmpT).sum())
 			tmpA4.append(np.asarray(tmpF).sum())
 

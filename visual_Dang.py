@@ -54,14 +54,14 @@ if __name__ == '__main__':
 	# 16 RKnee
 	# 17 RAnkle
 	# 18
-	Tracking3D  = read_data("./Data3D/ChaiMue_take_001_Data.txt")
+	Tracking3D  = read_data("./data3D/fastsong8.txt")
 	# Tracking3D  = read_data("./result.txt")
 	Tracking3D = Tracking3D.astype(float)
 	# np.savetxt("ChaiMue_take_001_Data.txt", Tracking3D, fmt = "%.3f", delimiter = ", ")
 	fig = plt.figure()
 	fig.set_size_inches(8, 12)
 	ax = fig.add_subplot(111, projection='3d')
-	for index in range(0, 1):
+	for index in range(0, Tracking3D.shape[0]):
 		plt.cla()
 		print(index)
 		frame = Tracking3D[index]
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 			dad = dad_arr[x][0]
 			child = dad_arr[x][1]
 			my_color = 'b'
-			if x == 10:
+			if x == 8:
 				my_color = 'g'
 			xxs = [xs[dad],xs[child]]
 			yys = [ys[dad],ys[child]]
