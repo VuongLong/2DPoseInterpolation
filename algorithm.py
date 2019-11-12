@@ -541,6 +541,51 @@ def interpolation_13_v5(AA, AA1):
 	return result.T
 
 
+
+def interpolation_T(AA, AA1):
+	length_clip = AA1.shape[0]
+	length_sequence = AA.shape[0]
+	K = length_sequence // length_clip 
+
+	A, A1, A1_MeanMat = deficiency_matrix2(AA, AA1)
+	U, UEV, _ = np.linalg.svd(np.matmul(A, A.T))
+	
+	list_A = []
+	list_A0 = []
+	list_U0 = []
+	for i in range(K):
+		l = length_clip*i+0
+		r = length_clip*i+length_clip
+		tmp = np.copy(A[:,l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(AA1.T == 0)] = 0
+		list_A0.append(np.copy(tmp))
+		U0tmp, U0EV, _ = np.linalg.svd(np.matmul(list_A0[-1], list_A0[-1].T))
+		list_U0.append(U0tmp)
+
+	list_alpha0 = [np.matmul(list_U0[i].T, list_A0[i]) for i in range(K)]
+	list_alpha = [np.matmul(U.T, list_A[i]) for i in range(K)]
+
+	alpha_alpha0T = np.zeros(np.matmul(list_alpha[0], list_alpha0[0].T).shape)
+	alpha0_alpha0T = np.zeros(np.matmul(list_alpha0[0], list_alpha0[0].T).shape)
+	for i in range(K):
+		alpha_alpha0T += np.matmul(list_alpha[i], list_alpha0[i].T)
+		alpha0_alpha0T += np.matmul(list_alpha0[i], list_alpha0[i].T)
+
+	Tmatrix = np.matmul(alpha_alpha0T, np.linalg.inv(alpha0_alpha0T))
+
+	U1 = mysvd(np.matmul(A1, A1.T))
+	alpha1 = np.matmul(U1.T, A1)
+
+	A_star = np.matmul(np.matmul(U, Tmatrix), alpha1)
+	tmp = A_star + A1_MeanMat
+	result = np.copy(AA1.T)
+	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
+	print("T0:")
+	check_interpolation(tmp[np.where(AA1.T == 0)])
+	return result.T
+
+
 def interpolation_13_v6(AA, AA1):
 	# count the number of patch in reference
 	length_clip = AA1.shape[0]
@@ -1269,6 +1314,49 @@ def interpolation_24_v5(AA, AA1, data):
 	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
 	return result.T
 
+def interpolation_F(AA, AA1):
+	length_clip = AA1.shape[1]
+	length_sequence = AA.shape[1]	
+	K = length_sequence // length_clip 
+
+	A, A1, A1_MeanMat = deficiency_matrix2(AA, AA1)
+	V = mysvd(np.matmul(A.T, A))
+
+	list_A = []
+	list_A0 = []
+	list_V0 = []
+	for i in range(K):
+		l = AA1.shape[1]*i+0
+		r = AA1.shape[1]*i+AA1.shape[1]
+		tmp = np.copy(A[l:r])
+		list_A.append(np.copy(tmp))
+		tmp[np.where(AA1.T == 0)] = 0
+		list_A0.append(np.copy(tmp))
+		list_V0.append(mysvd(np.matmul(list_A0[-1].T, list_A0[-1])))
+
+	list_alpha0 = [np.matmul(list_A0[i], list_V0[i]) for i in range(K)]
+	list_alpha = [np.matmul(list_A[i], V) for i in range(K)]
+	alpha0Talpha0 = np.zeros(np.matmul(list_alpha0[0].T, list_alpha0[0]).shape)
+	alpha0T_alpha = np.zeros(np.matmul(list_alpha0[0].T, list_alpha[0]).shape)
+	for i in range(K):
+		alpha0Talpha0 += np.matmul(list_alpha0[i].T, list_alpha0[i])
+		alpha0T_alpha += np.matmul(list_alpha0[i].T, list_alpha[i])
+
+	Fmatrix = np.matmul(np.linalg.inv(alpha0Talpha0), alpha0T_alpha )
+
+	V1 = mysvd(np.matmul(A1.T, A1))
+	alpha1 = np.matmul(A1, V1)
+
+	A_star = np.matmul(np.matmul(alpha1, Fmatrix), V.T)
+
+	tmp = A_star + A1_MeanMat
+	result = np.copy(AA1.T)
+	print("F0:")
+	check_interpolation(tmp[np.where(AA1.T == 0)])
+	result[np.where(AA1.T == 0)] = tmp[np.where(AA1.T == 0)]
+	return result.T
+
+
 def interpolation_24_v6(AA, AA1):
 	length_clip = AA1.shape[1]
 	length_sequence = AA.shape[1]	
@@ -1338,7 +1426,6 @@ def interpolation_24_v6(AA, AA1):
 		r = AA1.shape[1]*i+AA1.shape[1]
 		tmp = np.copy(A[l:r])
 		list_A.append(np.copy(tmp))
-		# tmp[:, columnwithgap] = 0
 		tmp[np.where(AA1.T == 0)] = 0
 		list_A0.append(np.copy(tmp))
 		list_V0.append(mysvd(np.matmul(list_A0[-1].T, list_A0[-1])))
