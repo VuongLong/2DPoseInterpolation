@@ -6,7 +6,7 @@ from algorithm import *
 from arguments import arg
 import sys
 import random
-from AAMI.main_Dang_Yu16 import test_func
+
 
 def load_missing(sub_link = None):
 	if sub_link == None:
@@ -23,31 +23,15 @@ def load_missing(sub_link = None):
 
 	matrix = np.array(matrix) # list can not read by index while arr can be
 	return matrix
-def remove_joint(data):
-	list_del = []
-	list_del_joint = [5, 9, 14, 18]
-
-	for x in list_del_joint:
-		list_del.append(x*3)
-		list_del.append(x*3+1)
-		list_del.append(x*3+2)
-	data = np.delete(data, list_del, 1)
-	print(data.shape)
-	return data 
 
 def process_hub5(method = 1, joint = True, data = None):
 	resultA3 = []
 	resultA4 = []
-	resultA5 = []
 	list_patch = arg.reference_task4_3D_source
-	list_patchDang = arg.Dang_source
 	print(list_patch)
 	A_N_source = np.hstack(
 		[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
-	A_N3_source = np.vstack(
-			[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
-	A_N3_sourceDang = np.vstack(
-			[np.copy(Tracking3D[list_patchDang[i][0]:list_patchDang[i][1]]) for i in range(len(list_patchDang))])
+	A_N3_source = np.copy(Tracking3D[list_patch[0][0]: list_patch[-1][1]])
 	print("original data reference A_N: ",A_N_source.shape)
 	print("original data reference A_N3: ",A_N3_source.shape)
 	if data != None:
@@ -56,15 +40,13 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("update reference:")
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
-	test_folder = "./fastsong7/test_data_Aniage/"
-	order_fol = []
+	test_folder = "./test_data_Aniage/"
 	for test_name in os.listdir(test_folder):
+		
 		current_folder = test_folder + test_name
 		if os.path.isdir(current_folder):
-			order_fol.append(test_name)
 			tmpA3 = []
 			tmpA4 = []
-			tmpA5 = []
 			test_reference = arg.reference_task4_3D
 			number_patch = len(arg.reference_task4_3D)
 			sample = np.copy(Tracking3D[test_reference[0][0]:test_reference[0][1]])
@@ -79,7 +61,6 @@ def process_hub5(method = 1, joint = True, data = None):
 				if sub_test != "_DS_Store":
 					tmpT = []
 					tmpF = []
-					tmpG = []
 					full_matrix = load_missing(current_folder+'/'+sub_test)
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
@@ -88,31 +69,22 @@ def process_hub5(method = 1, joint = True, data = None):
 							missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
 							A1zero = np.copy(A1)
 							A1zero[np.where(missing_matrix == 0)] = 0
-							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
-							tmptmp2 = np.vstack((np.copy(A_N3_sourceDang),np.copy(A1zero)))
 
-							A1_star3 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+							A1_star3 = interpolation_13_v6  (np.copy(A_N3),np.copy(A1zero))
 							tmpT.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = PCA_PLOS1(tmptmp, tmptmp)
-							tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
+							A1_star5 = interpolation_13_v6_v3(np.copy(A_N3), np.copy(A1zero))
 							tmpF.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))
-							print(A_N3.shape)
-							print(A1zero.shape)
-							A1_star8 = test_func(np.copy(A_N3), np.copy(A1zero))
-							tmpG.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+								A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
+
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
-				tmpA5.append(np.asarray(tmpG).sum())
 
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
-			resultA5.append(np.asarray(tmpA5).mean())
-	print(order_fol)
-	return [resultA3, resultA4, resultA5]
+
+	return resultA3, resultA4
 
 
 
@@ -148,8 +120,6 @@ if __name__ == '__main__':
 	data_link = "./data3D/fastsong7.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
-	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
-
-	result = process_hub5(method = 5, joint = True, data = None)
-	print(result)
+	r3, r4 = process_hub5(method = 5, joint = True, data = [source_AN, source_AN3])
+	print(r3, r4)
