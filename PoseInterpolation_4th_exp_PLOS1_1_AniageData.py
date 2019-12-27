@@ -53,12 +53,15 @@ def process_hub5(method = 1, joint = True, data = None):
 	resultA6 = []
 	resultA7 = []
 	resultA8 = []
+	resultA9 = []
 	list_patch = arg.reference_task4_3D_source
-	list_patch = arg.reference_task4_3D_source
+	list_patchDang = arg.Dang_source
 	if len(list_patch) > 0:
 		print(list_patch)
 		A_N_source = np.hstack(
 			[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
+		A_N3_sourceDang = np.vstack(
+			[np.copy(Tracking3D[list_patchDang[i][0]:list_patchDang[i][1]]) for i in range(len(list_patchDang))])
 		A_N3_source = np.vstack(
 			[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
 		print("original data reference A_N: ",A_N_source.shape)
@@ -70,12 +73,13 @@ def process_hub5(method = 1, joint = True, data = None):
 	if data != None:
 		A_N_source = np.hstack((A_N_source, data[0]))
 		A_N3_source = np.vstack((A_N3_source, data[1]))
+
 	print("update reference:")
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
 
-	# length_missing = [10]
-	length_missing = [1]
+	length_missing = [0]
+	# length_missing = [1]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
 	sample = np.copy(Tracking3D[test_reference[0][0]:test_reference[0][1]])
@@ -89,7 +93,8 @@ def process_hub5(method = 1, joint = True, data = None):
 		tmpA6 = []
 		tmpA7 = []
 		tmpA8 = []
-		for times in range(1):
+		tmpA9 = []
+		for times in range(10):
 			print("current: ", lmiss, times)
 			# patch_arr = [0]*number_patch
 			# missing_gap_arr = []
@@ -120,7 +125,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					print("patch add to missing: ", x)
 					# generate missing matrix
 					missing_matrix = generate_missing_joint(
-						sample.shape[0], sample.shape[1], lmiss, 1)		
+						sample.shape[0], sample.shape[1], lmiss, 7)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
@@ -131,7 +136,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					A_N3 = np.vstack((A_N3, tmp))
 			print("reference A_N update missing data: ",A_N.shape)
 			print("reference A_N3 update missing data: ",A_N3.shape)
-			# np.savetxt("./test_data_Aniage/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			np.savetxt("./test_data_Aniage/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
 			# interpolation for each patch
 			tmpT = []
@@ -140,6 +145,7 @@ def process_hub5(method = 1, joint = True, data = None):
 			tmpH = []
 			tmpJ = []
 			tmpK = []
+			tmpL = []
 			for x in range(number_patch):
 				if patch_arr[x] > 0:
 					# get data which corespond to starting frame of A1
@@ -152,13 +158,13 @@ def process_hub5(method = 1, joint = True, data = None):
 
 					
 
-					# A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
+					# A1_star3 = PCA_PLOS1_Uversion(np.copy(A1zero),np.copy(A1zero))
 					# tmpT.append(np.around(calculate_mae_matrix(
 					# 	A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 
-					A1_star4 = interpolation_13_v6_v3(np.copy(A_N3),np.copy(A1zero))
-					tmpF.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+					# A1_star4 = interpolation_13_v6_v3(np.copy(A_N3),np.copy(A1zero))
+					# tmpF.append(np.around(calculate_mae_matrix(
+						# A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 					# np.savetxt("recover.txt", A1_star4, fmt = "%.2f")
 					
 
@@ -167,35 +173,45 @@ def process_hub5(method = 1, joint = True, data = None):
 					# 	A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
 
 					# compute 2nd method
-					# A1_star6 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-					# tmpH.append(np.around(calculate_mae_matrix(
-					# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+					A1_star6 = PCA_PLOS1(np.copy(A1zero),np.copy(A1zero))
+					tmpH.append(np.around(calculate_mae_matrix(
+						A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
 
-					A1_star8 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-					tmpK.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
-
-
-					A1_star7 = interpolation_24_v6_v2(np.copy(A_N),np.copy(A1zero))
+					tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
+					tmptmp2 = np.vstack((np.copy(A_N3_sourceDang),np.copy(A1zero)))
+					A1_star7 = PCA_PLOS1(tmptmp, tmptmp)
+					tmp_7 = np.copy(A1_star7[-A1zero.shape[0]:,:])
 					tmpJ.append(np.around(calculate_mae_matrix(
-						A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
+						A1[np.where(A1zero == 0)]- tmp_7[np.where(A1zero == 0)]), decimals = 17))
 
+					A1_star8 = PCA_PLOS1_F7(tmptmp2, tmptmp2)
+					tmp_8 = np.copy(A1_star8[-A1zero.shape[0]:,:])
+					tmpK.append(np.around(calculate_mae_matrix(
+						A1[np.where(A1zero == 0)]- tmp_8[np.where(A1zero == 0)]), decimals = 17))
+
+					A1_star9 = PCA_PLOS1_F7(tmptmp, tmptmp)
+					tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
+					tmpL.append(np.around(calculate_mae_matrix(
+						A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))
 					
 
-			# tmpA3.append(np.asarray(tmpT).sum())
-			tmpA4.append(np.asarray(tmpF).sum())
+			tmpA3.append(np.asarray(tmpH).sum())
+			# tmpA4.append(np.asarray(tmpF).sum())
 			# tmpA5.append(np.asarray(tmpG).sum())
-			# tmpA6.append(np.asarray(tmpH).sum())
+			tmpA6.append(np.asarray(tmpH).sum())
 			tmpA7.append(np.asarray(tmpJ).sum())
 			tmpA8.append(np.asarray(tmpK).sum())
+			tmpA9.append(np.asarray(tmpL).sum())
 
-		# resultA3.append(np.asarray(tmpA3).mean())
-		resultA4.append(np.asarray(tmpA4).mean())
+		resultA3.append(np.asarray(tmpA3).mean())
+		# resultA4.append(np.asarray(tmpA4).mean())
 		# resultA5.append(np.asarray(tmpA5).mean())
-		# resultA6.append(np.asarray(tmpA6).mean())
+		resultA6.append(np.asarray(tmpA6).mean())
 		resultA7.append(np.asarray(tmpA7).mean())
 		resultA8.append(np.asarray(tmpA8).mean())
-	return [0, resultA4, 0], [0, resultA8, resultA7]
+		resultA9.append(np.asarray(tmpA9).mean())
+
+	return [resultA3, 0, 0], [resultA6, resultA7, resultA8, resultA9]
 
 def remove_joint(data):
 	list_del = []

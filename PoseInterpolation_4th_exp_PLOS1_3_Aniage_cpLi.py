@@ -118,31 +118,31 @@ def process_hub5(method = 1, joint = True, data = None):
 			tmpT = []
 			tmpF = []
 			tmpG = []
-			for x in range(number_patch):
-				if patch_arr[x] > 0:
-				# get data which corespond to starting frame of A1
-					A1 = np.copy(Tracking3D[test_reference[x][0]:test_reference[x][1]])
-					missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
-					A1zero = np.copy(A1)
-					A1zero[np.where(missing_matrix == 0)] = 0
+		# 	for x in range(number_patch):
+		# 		if patch_arr[x] > 0:
+		# 		# get data which corespond to starting frame of A1
+		# 			A1 = np.copy(Tracking3D[test_reference[x][0]:test_reference[x][1]])
+		# 			missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
+		# 			A1zero = np.copy(A1)
+		# 			A1zero[np.where(missing_matrix == 0)] = 0
 
-					A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
-					tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-					# compute 2nd method
-					A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-					tmpF.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+		# 			A1_star3 = interpolation_13_v6(np.copy(A_N3),np.copy(A1zero))
+		# 			tmpT.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+		# 			# compute 2nd method
+		# 			A1_star4 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+		# 			tmpF.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
-					A1_star5 = interpolation_24_v6_v2(np.copy(A_N),np.copy(A1zero))
-					tmpG.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
+		# 			A1_star5 = interpolation_24_v6_v2(np.copy(A_N),np.copy(A1zero))
+		# 			tmpG.append(np.around(calculate_mae_matrix(A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
 
-			tmpA3.append(np.asarray(tmpT).sum())
-			tmpA4.append(np.asarray(tmpF).sum())
-			tmpA5.append(np.asarray(tmpG).sum())
+		# 	tmpA3.append(np.asarray(tmpT).sum())
+		# 	tmpA4.append(np.asarray(tmpF).sum())
+		# 	tmpA5.append(np.asarray(tmpG).sum())
 
-		resultA3.append(np.asarray(tmpA3).mean())
-		resultA4.append(np.asarray(tmpA4).mean())
-		resultA5.append(np.asarray(tmpA5).mean())
-	return resultA3, [resultA4, resultA5]
+		# resultA3.append(np.asarray(tmpA3).mean())
+		# resultA4.append(np.asarray(tmpA4).mean())
+		# resultA5.append(np.asarray(tmpA5).mean())
+	return 0, [0, 0]
 
 def remove_joint(data):
 	list_del = []
@@ -185,7 +185,7 @@ if __name__ == '__main__':
 	print(source_AN.shape)
 	print(source_AN3.shape)
 
-	data_link = ["./data3D/fastsong8.txt"]
+	data_link = ["./data3D/fastsong7.txt"]
 	# data_link = ["./data3D/135_02.txt","./data3D/85_12.txt", "./data3D/HDM_mm_02-02_02_120.txt", "./data3D/HDM_mm_01-02_03_120.txt", "./data3D/HDM_mm_03-02_01_120.txt"]
 	result = []
 	for x in data_link:
@@ -194,7 +194,7 @@ if __name__ == '__main__':
 		Tracking3D, restore  = read_tracking_data3D_v2(x)
 		Tracking3D = remove_joint(Tracking3D)
 		Tracking3D = Tracking3D.astype(float)
-		r3, r4 = process_hub5(method = 5, joint = True, data = [source_AN, source_AN3])
+		r3, r4 = process_hub5(method = 5, joint = True, data = None)
 		result.append([r3,r4])
 	for x in range(len(result)):
 		print(result[x])
