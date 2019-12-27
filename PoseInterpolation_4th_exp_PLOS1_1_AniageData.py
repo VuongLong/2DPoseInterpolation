@@ -78,7 +78,7 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
 
-	length_missing = [50]
+	length_missing = [0]
 	# length_missing = [1]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
@@ -184,12 +184,12 @@ def process_hub5(method = 1, joint = True, data = None):
 					tmpJ.append(np.around(calculate_mae_matrix(
 						A1[np.where(A1zero == 0)]- tmp_7[np.where(A1zero == 0)]), decimals = 17))
 
-					A1_star8 = PCA_PLOS1_F6(tmptmp2, tmptmp2)
+					A1_star8 = PCA_PLOS1_F7(tmptmp2, tmptmp2)
 					tmp_8 = np.copy(A1_star8[-A1zero.shape[0]:,:])
 					tmpK.append(np.around(calculate_mae_matrix(
 						A1[np.where(A1zero == 0)]- tmp_8[np.where(A1zero == 0)]), decimals = 17))
 
-					A1_star9 = PCA_PLOS1_F6(tmptmp, tmptmp)
+					A1_star9 = PCA_PLOS1_F7(tmptmp, tmptmp)
 					tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
 					tmpL.append(np.around(calculate_mae_matrix(
 						A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))
