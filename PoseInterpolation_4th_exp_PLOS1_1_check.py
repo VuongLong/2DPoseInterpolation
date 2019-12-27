@@ -6,7 +6,7 @@ from algorithm import *
 from arguments import arg
 import sys
 import random
-from AAMI.main_Dang_Yu16 import test_func
+from Yu_new.main_Dang_Yu16 import test_func
 
 def load_missing(sub_link = None):
 	if sub_link == None:
@@ -40,14 +40,11 @@ def process_hub5(method = 1, joint = True, data = None):
 	resultA4 = []
 	resultA5 = []
 	list_patch = arg.reference_task4_3D_source
-	list_patchDang = arg.Dang_source
 	print(list_patch)
 	A_N_source = np.hstack(
 		[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
 	A_N3_source = np.vstack(
 			[np.copy(Tracking3D[list_patch[i][0]:list_patch[i][1]]) for i in range(len(list_patch))])
-	A_N3_sourceDang = np.vstack(
-			[np.copy(Tracking3D[list_patchDang[i][0]:list_patchDang[i][1]]) for i in range(len(list_patchDang))])
 	print("original data reference A_N: ",A_N_source.shape)
 	print("original data reference A_N3: ",A_N3_source.shape)
 	if data != None:
@@ -89,7 +86,6 @@ def process_hub5(method = 1, joint = True, data = None):
 							A1zero = np.copy(A1)
 							A1zero[np.where(missing_matrix == 0)] = 0
 							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
-							tmptmp2 = np.vstack((np.copy(A_N3_sourceDang),np.copy(A1zero)))
 
 							A1_star3 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
 							tmpT.append(np.around(calculate_mae_matrix(

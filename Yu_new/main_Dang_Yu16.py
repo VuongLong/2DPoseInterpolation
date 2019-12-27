@@ -3,7 +3,6 @@ from Yu_new.preprocess import generate_patch_data, normalize
 # from adaboost import *
 from Yu_new.algorithm1 import * 
 from Yu_new.utils import *
-from Yu_new.data import AN_T, AN_F, A1, original_A1, missing_map
 import copy
 
 class adaboost_16th():
@@ -80,7 +79,7 @@ class adaboost_16th():
 		return self.list_function[sample_idx]
 
 def test_func(source_data, test_data):
-	interpolation = Interpolation16th_F(AN_F, test_data)
+	interpolation = Interpolation16th_F(source_data, test_data)
 	interpolation.interpolate_missing()
 	boosting = adaboost_16th(interpolation) 
 	boosting.train()
@@ -90,19 +89,5 @@ def test_func(source_data, test_data):
 	return result
 
 if __name__ == '__main__':
-
-	print("Reference source:")
-	print('AN_T', AN_T.shape)
-	print('AN_F', AN_F.shape)
-
-	print("\nTest source:")
-	print('A1', A1.shape)
+	print("ok")
 	
-	interpolation = Interpolation16th_F(AN_F, A1)
-	result1 = interpolation.interpolate_missing()
-	print(MSE(result1, original_A1, missing_map))
-	boosting = adaboost_16th(interpolation) 
-	boosting.train()
-	print(boosting.get_beta_info())
-	result2 = boosting.interpolate_accumulate()
-	print(MSE(result2, original_A1, missing_map))
