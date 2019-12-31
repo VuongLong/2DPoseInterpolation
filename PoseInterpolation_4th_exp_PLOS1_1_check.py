@@ -53,7 +53,7 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("update reference:")
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
-	test_folder = "./fastsong7/test_data_Aniage/"
+	test_folder = "./test_only_1/test/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -73,7 +73,7 @@ def process_hub5(method = 1, joint = True, data = None):
 			for sub_test in os.listdir(current_folder):
 				print(current_folder+'/'+sub_test)
 				# if os.path.isdir(current_folder+'/'+sub_test) :
-				if sub_test != "_DS_Store":
+				if sub_test != "_DS_Store" and sub_test[-1] == 't':
 					tmpT = []
 					tmpF = []
 					tmpG = []
@@ -87,11 +87,15 @@ def process_hub5(method = 1, joint = True, data = None):
 							A1zero[np.where(missing_matrix == 0)] = 0
 							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
 
-							A1_star3 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-							tmpT.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star3 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
+							# tmpT.append(np.around(calculate_mae_matrix(
+							# 	A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = PCA_PLOS1(tmptmp, tmptmp)
+							A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), A1zero)
+							tmpT.append(np.around(calculate_mae_matrix(
+								A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
+
+							A1_star9 = PCA_PLOS1(np.copy(tmptmp), np.copy(tmptmp))
 							tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
 							tmpF.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))

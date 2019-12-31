@@ -12,8 +12,8 @@ class adaboost_16th():
 		self.list_function = []
 		self.list_function.append(self.function)
 		self.list_beta = []
-		self.threshold = 0.6
-		self.power_coefficient = 2
+		self.threshold = 0.1
+		self.power_coefficient = 10
 		self.number_sample = inner_function.get_number_sample()
 	def set_iteration(self, number):
 		self.iteration_lim = number
@@ -22,11 +22,14 @@ class adaboost_16th():
 		for loop_i in range(self.iteration_lim):
 			current_function = self.list_function[-1]
 			accumulate_error_weight = 0
-			
+
 			# compute error for each sample
 			error_sample = current_function.interpolate_sample()
+			# print("error sample: ",error_sample)
+			self.threshold = np.median(error_sample)
 			alpha = current_function.get_alpha()
 			weight_sample = current_function.get_weight()
+			# print("old distri: ", weight_sample)
 			# compute error rate for function
 			for x in range(self.number_sample):
 				if error_sample[x] > self.threshold:
@@ -41,8 +44,16 @@ class adaboost_16th():
 				else:
 					new_distribution.append(weight_sample[x])
 				accumulate_Z += new_distribution[-1]
+			# print("sum error: ", accumulate_Z)
+			if accumulate_Z <= 0.00001:
+				self.iteration_lim = max(0, loop_i-1)
+				break
+			if accumulate_Z == 1.0:
+				self.iteration_lim = loop_i
+				break
 			for x in range(self.number_sample):
 				new_distribution[x] = new_distribution[x] / accumulate_Z
+			# print("new distri:", new_distribution)
 			# update new function
 			new_function = copy.deepcopy(current_function)
 			new_function.set_weight(np.copy(new_distribution))
@@ -53,6 +64,8 @@ class adaboost_16th():
 		return self.list_beta
 
 	def interpolate_accumulate(self):
+		if self.iteration_lim <= 1:
+			return self.function.interpolate_missing()
 		list_result = []
 		for t in range(self.iteration_lim):
 			current_function = self.list_function[t]
