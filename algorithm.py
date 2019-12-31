@@ -1028,7 +1028,7 @@ def PCA_PLOS1(AA, matrix2):
 	return final_result
 
 
-def PCA_PLOS1_Vversion(AA, matrix2):
+def PCA_PLOS1_Uversion(AA, matrix2):
 
 	weightScale = 200
 	MMweight = 0.02
@@ -1578,7 +1578,7 @@ def interpolation_24_v6(AA, AA1):
 
 def PCA_PLOS1_F4(AA, AA1):
 
-	combine_matrix = np.hstack((AA, AA1))
+	combine_matrix = np.vstack((AA, AA1))
 	weightScale = 200
 	MMweight = 0.02
 	[frames, columns] = combine_matrix.shape
@@ -1675,13 +1675,7 @@ def PCA_PLOS1_F4(AA, AA1):
 	U_N_nogap = U_N_nogap[:, :ksmall]
 	U_N_zero = U_N_zero[:, :ksmall]
 	T_matrix = np.matmul(U_N_nogap.T , U_N_zero)
-	# T_matrix = np.matmul(np.matmul(np.matmul(U_N_nogap.T, N_nogap.T), N_zero), U_N_zero)
-	print(M_zero.shape)
-	print(U_N_zero.shape)
-	print(T_matrix.shape)
-	print(U_N_nogap.T.shape)
 	reconstructData = np.matmul(np.matmul(np.matmul(M_zero, U_N_zero), T_matrix), U_N_nogap.T)
-	print("end checking shape")
 	
 	# reverse normalization
 	m7 = np.ones((Data.shape[0],1))*mean_N_nogap
@@ -1689,10 +1683,10 @@ def PCA_PLOS1_F4(AA, AA1):
 	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
 	reconstructData = m7 + (np.multiply(reconstructData, m8) / m3)
 	tmp = reconstructData + MeanMat
-	result = np.copy(tmp[:,-AA1.shape[1]:])
+	result = np.copy(tmp[-AA1.shape[0]:,:])
 	final_result = np.copy(AA1)
 	final_result[np.where(AA1 == 0)] = result[np.where(AA1 == 0)]
-	print("T0:")
+	print("checking result PCA long patch:")
 	check_interpolation(final_result[np.where(AA1 == 0)])
 	return final_result
 
