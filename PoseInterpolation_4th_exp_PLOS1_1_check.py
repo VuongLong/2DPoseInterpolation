@@ -53,7 +53,8 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("update reference:")
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
-	test_folder = "./test_only_1/test/"
+	# test_folder = "./test_only_1/test/"
+	test_folder = "./fastsong7/test_data_Aniage_2/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -95,7 +96,7 @@ def process_hub5(method = 1, joint = True, data = None):
 							tmpT.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = PCA_PLOS1(np.copy(tmptmp), np.copy(tmptmp))
+							A1_star9 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
 							tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
 							tmpF.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))
