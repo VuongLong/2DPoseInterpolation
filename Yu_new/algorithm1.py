@@ -453,9 +453,9 @@ class Interpolation16th_F():
 			list_P.append(np.copy(tmp_matrix))
 
 		left_hand = np.hstack([ x for x in list_P])
-
-		self.list_alpha = np.linalg.lstsq(np.matmul(left_hand.T, left_hand), np.matmul(left_hand.T, right_hand), rcond = None)[0]
-
+		tmp_alpha = np.linalg.lstsq(np.matmul(left_hand.T, left_hand), np.matmul(left_hand.T, right_hand), rcond = None)[0]
+		sum_alpha = np.sum(tmp_alpha)
+		self.list_alpha = np.copy(tmp_alpha/sum_alpha)
 		return 0
 
 	def interpolate_missing(self):
