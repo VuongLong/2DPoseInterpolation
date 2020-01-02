@@ -85,12 +85,20 @@ class adaboost_16th():
 		return self.list_beta
 
 	def interpolate_accumulate(self):
-		if self.iteration_lim <= 1:
+		if self.iteration_lim < 1:
 			return self.function.interpolate_missing()
 		list_result = []
 		start_round = 0
-		if (self.list_mean_error[0] > np.mean(np.asarray(self.list_mean_error[1:-1]))) and self.iteration_lim >= 2:
-			start_round = 1
+		if self.iteration_lim >= 2:
+			for x in range(min(self.iteration_lim-1, 2)):
+				if (self.list_mean_error[x] < np.mean(np.asarray(self.list_mean_error[x+1:self.iteration_lim]))):
+					break
+				start_round = x+1
+		# if (self.list_mean_error[0] > np.mean(np.asarray(self.list_mean_error[1:-1]))) and self.iteration_lim >= 2:
+		# 	start_round = 1
+		# 	print("///////////////////////////////////////////")
+		# 	print("bi tru")
+		# 	print("///////////////////////////////////////////")
 		for t in range(start_round, self.iteration_lim):
 			current_function = self.list_function[t]
 			function_result = current_function.interpolate_missing()
