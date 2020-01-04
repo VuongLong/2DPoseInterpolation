@@ -78,7 +78,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					tmpT = []
 					tmpF = []
 					tmpG = []
-					full_matrix = load_missing()
+					full_matrix = load_missing(current_folder+'/'+sub_test)
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
 							# get data which corespond to starting frame of A1
@@ -105,7 +105,6 @@ def process_hub5(method = 1, joint = True, data = None):
 							A1_star8 = test_func(np.copy(A_N3), np.copy(A1zero))
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
-							halt
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
