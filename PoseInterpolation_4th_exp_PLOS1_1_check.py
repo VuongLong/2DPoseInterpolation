@@ -10,7 +10,7 @@ from Yu_new.main_Dang_Yu16 import test_func
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data/120/0.txt"
+		link = "./test_data_CMU_gap/10/10.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -119,31 +119,31 @@ def process_hub5(method = 1, joint = True, data = None):
 
 if __name__ == '__main__':
 
-	refer_link = ["./data3D/fastsong2.txt","./data3D/fastsong3.txt","./data3D/fastsong4.txt","./data3D/fastsong5.txt","./data3D/fastsong6.txt","./data3D/fastsong8.txt",]
-	resource_refer = [[0, 300], [0, 600], [80, 380], [0, 500], [0, 600], [0, 800]]
-	tmp_AN = []
-	tmp_AN3= []
-	counter = 0
-	for x in refer_link:
-		print("reading source: ", x)
-		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
-		source , _  = read_tracking_data3D_v2(x)
-		source = source.astype(float)
-		source = source[resource_refer[counter][0]:resource_refer[counter][1]]
-		counter += 1
-		K = source.shape[0] // arg.length3D
-		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-		AN_source = np.hstack(
-			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-		tmp_AN.append(AN_source)
-		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-		tmp_AN3.append(AN3_source)
-	source_AN = np.hstack(tmp_AN)
-	source_AN3 = np.vstack(tmp_AN3)
+	# refer_link = ["./data3D/fastsong2.txt","./data3D/fastsong3.txt","./data3D/fastsong4.txt","./data3D/fastsong5.txt","./data3D/fastsong6.txt","./data3D/fastsong8.txt",]
+	# resource_refer = [[0, 300], [0, 600], [80, 380], [0, 500], [0, 600], [0, 800]]
+	# tmp_AN = []
+	# tmp_AN3= []
+	# counter = 0
+	# for x in refer_link:
+	# 	print("reading source: ", x)
+	# 	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+	# 	source , _  = read_tracking_data3D_v2(x)
+	# 	source = source.astype(float)
+	# 	source = source[resource_refer[counter][0]:resource_refer[counter][1]]
+	# 	counter += 1
+	# 	K = source.shape[0] // arg.length3D
+	# 	list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
+	# 	AN_source = np.hstack(
+	# 		[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
+	# 	tmp_AN.append(AN_source)
+	# 	AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+	# 	tmp_AN3.append(AN3_source)
+	# source_AN = np.hstack(tmp_AN)
+	# source_AN3 = np.vstack(tmp_AN3)
 
-	print("reference source:")
-	print(source_AN.shape)
-	print(source_AN3.shape)
+	# print("reference source:")
+	# print(source_AN.shape)
+	# print(source_AN3.shape)
 
 
 	# data_link = "./data3D/fastsong7.txt"
