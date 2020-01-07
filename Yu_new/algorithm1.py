@@ -279,8 +279,6 @@ class Interpolation8th_F():
 	def get_number_sample(self):
 		return self.K
 
-
-
 class Interpolation16th_F():
 	def __init__(self, reference_matrix, missing_matrix):
 		self.A1 = missing_matrix
@@ -295,9 +293,7 @@ class Interpolation16th_F():
 		self.list_F = []
 		self.fix_leng = missing_matrix.shape[0]
 		self.list_alpha = []
-
 		self.compute_svd()
-		self.weight_sample = [1.0/self.K]*self.K
 		self.inner_compute_alpha()
 
 	def normalization(self):
@@ -392,6 +388,7 @@ class Interpolation16th_F():
 		return [M_zero, N_nogap, N_zero], [m7, stdev_N_no_gaps, column_weight, MeanMat]
 
 	def compute_svd(self):
+		
 		M_zero = self.normed_matries[0]
 		N_nogap = self.normed_matries[1]
 		N_zero = self.normed_matries[2]
@@ -400,7 +397,12 @@ class Interpolation16th_F():
 		r = self.fix_leng
 		l = 0
 		ksmall = 0
-		while r <= N_zero.shape[0]:
+		add_small_patch = False
+		while l <= r:
+			if r - l < 20: 
+				break
+			if r - l < self.fix_leng:
+				add_small_patch = True
 			self.K += 1
 			tmp = np.copy(N_nogap[l:r])
 			self.list_A.append(np.copy(tmp))
@@ -415,7 +417,13 @@ class Interpolation16th_F():
 			ksmall = max(ksmall, get_zero(tmp_Vsigma))
 			self.list_V.append(np.copy(tmp_V.T))
 			r += self.fix_leng
+			r = min(r, N_zero.shape[0])
 			l += self.fix_leng
+
+
+		# ///////////////////////////////////////////////
+		# this peice of code to add combine matrix to list
+		# /////////////////////begin//////////////////////////
 		self.list_A.append(np.copy(N_nogap))
 		self.list_A0.append(np.copy(N_zero))
 		_, tmp_V0sigma, tmp_V0 = np.linalg.svd(self.list_A0[-1]/np.sqrt(self.list_A0[-1].shape[0]-1), full_matrices = False)
@@ -425,13 +433,23 @@ class Interpolation16th_F():
 		ksmall = max(ksmall, get_zero(tmp_Vsigma))
 		self.list_V.append(np.copy(tmp_V.T))
 		self.K += 1
+		Vmatrix_size = self.list_V[-2].shape[1]
+		ksmall = min(ksmall, Vmatrix_size)
 
+		print("K info: ", self.K)
+		# /////////////////////end////////////////////////// 
 		for i in range(self.K):
 			self.list_V[i] = self.list_V[i][:, :ksmall]
 			self.list_V0[i] = self.list_V0[i][:, :ksmall]
 			self.list_F.append(np.matmul(self.list_V0[i].T, self.list_V[i]))
 
-
+		if add_small_patch:
+			self.weight_sample = [0.2 / self.K] * self.K
+			self.weight_sample[-1] = 0.4
+			self.weight_sample[-2] = 0.4
+		else:
+			self.weight_sample = [0.6 / self.K] * self.K
+			self.weight_sample[-1] = 0.4
 	def inner_compute_alpha(self):
 		# build list_alpha
 		list_Q = []

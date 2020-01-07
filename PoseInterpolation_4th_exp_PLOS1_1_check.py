@@ -10,7 +10,7 @@ from Yu_new.main_Dang_Yu16 import test_func
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data_CMU_gap/10/10.txt"
+		link = "./fastsong7/test_data_Aniage_2/1/19.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -54,7 +54,7 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("reference A_N: ",A_N_source.shape)
 	print("reference A_N3: ",A_N3_source.shape)
 	# test_folder = "./test_only_1/test/"
-	test_folder = "./test_data_CMU_gap/"
+	test_folder = "./fastsong7/test_data_Aniage_2_testgood/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -146,11 +146,11 @@ if __name__ == '__main__':
 	# print(source_AN3.shape)
 
 
-	# data_link = "./data3D/fastsong7.txt"
-	data_link = "./data3D/135_02.txt"
+	data_link = "./data3D/fastsong7.txt"
+	# data_link = "./data3D/135_02.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
-	# Tracking3D = remove_joint(Tracking3D)
+	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 
 	result = process_hub5(method = 5, joint = True, data = None)
