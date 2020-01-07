@@ -6,7 +6,7 @@ from Yu_new.utils import *
 import copy
 
 class adaboost_16th():
-	def __init__(self, inner_function, number_loop = 100):
+	def __init__(self, inner_function, number_loop = 20):
 		self.iteration_lim = number_loop
 		self.function = inner_function
 		self.list_function = []
