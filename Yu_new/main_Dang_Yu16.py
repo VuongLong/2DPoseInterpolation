@@ -13,7 +13,7 @@ class adaboost_16th():
 		self.list_function.append(self.function)
 		self.list_beta = []
 		self.threshold = 0.8
-		self.power_coefficient = 10
+		self.power_coefficient = 4
 		self.number_sample = inner_function.get_number_sample()
 		self.limit_error = 2
 		self.list_mean_error = []
@@ -28,7 +28,6 @@ class adaboost_16th():
 			print("looping: ", loop_i)
 			current_function = self.list_function[-1]
 			accumulate_error_weight = 0
-			
 			# compute error for each sample
 			error_sample = current_function.interpolate_sample()
 			self.list_mean_error.append(np.mean(error_sample))
@@ -39,14 +38,14 @@ class adaboost_16th():
 					index_maxPosition = loop_i
 			
 			self.threshold = np.median(error_sample)
-			print(error_sample)
-			print("threshold: ", self.threshold)
+			# print("error_sample: ", error_sample)
+			# print("threshold: ", self.threshold)
 			alpha = current_function.get_alpha()
 			weight_sample = current_function.get_weight()
 			if (loop_i - index_maxPosition >= 10) and (index_maxPosition != -1):
 				weight_sample[index_maxError] = 0
 				index_maxPosition = -1
-			print("weight_sample", weight_sample)
+			# print("weight_sample: ", weight_sample)
 			# compute error rate for function
 			for x in range(self.number_sample):
 				if error_sample[x] > self.threshold:
@@ -61,20 +60,20 @@ class adaboost_16th():
 				else:
 					new_distribution.append(weight_sample[x])
 				accumulate_Z += new_distribution[-1]
-			print("accumulate_Z: ", accumulate_Z)
-			print("accumulate_error_weight", accumulate_error_weight)
+			# print("accumulate_Z: ", accumulate_Z)
+			# print("accumulate_error_weight: ", accumulate_error_weight)
 			if accumulate_error_weight <= 0.00001:
 				self.iteration_lim = loop_i-1
-				print("stop training ADABOOST")
+				print("/////////////////stop training ADABOOST/////////////")
 				break
 			if accumulate_error_weight >= 0.9999:
 				self.iteration_lim = loop_i
-				print("stop training ADABOOST")
+				print("/////////////////stop training ADABOOST/////////////")
 				break
 			for x in range(self.number_sample):
 				new_distribution[x] = new_distribution[x] / accumulate_Z
-			print(new_distribution)
-			print("ok")
+			# print("new_distribution: ", new_distribution)
+			# print("finish loop: ", loop_i)
 			# update new function
 			new_function = copy.deepcopy(current_function)
 			new_function.set_weight(np.copy(new_distribution))

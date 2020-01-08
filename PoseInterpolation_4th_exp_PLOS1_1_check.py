@@ -10,7 +10,7 @@ from Yu_new.main_Dang_Yu16 import test_func
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./fastsong7/test_data_Aniage_2/1/19.txt"
+		link = "./fastsong7/test_data_Aniage_2/3/14.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -35,7 +35,7 @@ def remove_joint(data):
 	print(data.shape)
 	return data 
 
-def process_hub5(method = 1, joint = True, data = None):
+def process_hub5(data = None):
 	resultA3 = []
 	resultA4 = []
 	resultA5 = []
@@ -48,13 +48,13 @@ def process_hub5(method = 1, joint = True, data = None):
 	print("original data reference A_N: ",A_N_source.shape)
 	print("original data reference A_N3: ",A_N3_source.shape)
 	if data != None:
-		A_N_source = np.hstack((A_N_source, data[0]))
-		A_N3_source = np.vstack((A_N3_source, data[1]))
+		A_N_source_added = np.hstack((A_N_source, data[0]))
+		A_N3_source_added = np.vstack((A_N3_source, data[1]))
 	print("update reference:")
-	print("reference A_N: ",A_N_source.shape)
-	print("reference A_N3: ",A_N3_source.shape)
+	print("reference A_N: ",A_N_source_added.shape)
+	print("reference A_N3: ",A_N3_source_added.shape)
 	# test_folder = "./test_only_1/test/"
-	test_folder = "./fastsong7/test_data_Aniage_2_testgood/"
+	test_folder = "./fastsong7/test_data_Aniage_2/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -78,7 +78,7 @@ def process_hub5(method = 1, joint = True, data = None):
 					tmpT = []
 					tmpF = []
 					tmpG = []
-					full_matrix = load_missing(current_folder+'/'+sub_test)
+					full_matrix = load_missing()
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
 							# get data which corespond to starting frame of A1
@@ -100,11 +100,11 @@ def process_hub5(method = 1, joint = True, data = None):
 							tmp_9 = np.copy(A1_star9[-A1zero.shape[0]:,:])
 							tmpF.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- tmp_9[np.where(A1zero == 0)]), decimals = 17))
-							print(A_N3.shape)
-							print(A1zero.shape)
-							A1_star8 = test_func(np.copy(A_N3), np.copy(A1zero))
+
+							A1_star8 = test_func(np.copy(A_N3_source_added), np.copy(A1zero))
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+							dm
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
@@ -121,30 +121,32 @@ if __name__ == '__main__':
 
 	# refer_link = ["./data3D/fastsong2.txt","./data3D/fastsong3.txt","./data3D/fastsong4.txt","./data3D/fastsong5.txt","./data3D/fastsong6.txt","./data3D/fastsong8.txt",]
 	# resource_refer = [[0, 300], [0, 600], [80, 380], [0, 500], [0, 600], [0, 800]]
-	# tmp_AN = []
-	# tmp_AN3= []
-	# counter = 0
-	# for x in refer_link:
-	# 	print("reading source: ", x)
-	# 	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
-	# 	source , _  = read_tracking_data3D_v2(x)
-	# 	source = source.astype(float)
-	# 	source = source[resource_refer[counter][0]:resource_refer[counter][1]]
-	# 	counter += 1
-	# 	K = source.shape[0] // arg.length3D
-	# 	list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-	# 	AN_source = np.hstack(
-	# 		[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-	# 	tmp_AN.append(AN_source)
-	# 	AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-	# 	tmp_AN3.append(AN3_source)
-	# source_AN = np.hstack(tmp_AN)
-	# source_AN3 = np.vstack(tmp_AN3)
+	refer_link = ["./data3D/fastsong8.txt"]
+	resource_refer = [[450, 750]]
+	tmp_AN = []
+	tmp_AN3= []
+	counter = 0
+	for x in refer_link:
+		print("reading source: ", x)
+		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+		source , _  = read_tracking_data3D_v2(x)
+		source = remove_joint(source)
+		source = source.astype(float)
+		source = source[resource_refer[counter][0]:resource_refer[counter][1]]
+		counter += 1
+		K = source.shape[0] // arg.length3D
+		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
+		AN_source = np.hstack(
+			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
+		tmp_AN.append(AN_source)
+		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+		tmp_AN3.append(AN3_source)
+	source_AN = np.hstack(tmp_AN)
+	source_AN3 = np.vstack(tmp_AN3)
 
-	# print("reference source:")
-	# print(source_AN.shape)
-	# print(source_AN3.shape)
-
+	print("reference source:")
+	print(source_AN.shape)
+	print(source_AN3.shape)
 
 	data_link = "./data3D/fastsong7.txt"
 	# data_link = "./data3D/135_02.txt"
@@ -153,5 +155,5 @@ if __name__ == '__main__':
 	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 
-	result = process_hub5(method = 5, joint = True, data = None)
+	result = process_hub5(data = [source_AN, source_AN3])
 	print(result)
