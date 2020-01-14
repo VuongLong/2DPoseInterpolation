@@ -7,10 +7,11 @@ from arguments import arg
 import sys
 import random
 from Yu_new.main_Dang_Yu16 import test_func
+import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./fastsong7/test_data_Aniage_2/3/14.txt"
+		link = "./fastsong7/test_data_Aniage_2/3/1.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -35,6 +36,14 @@ def remove_joint(data):
 	print(data.shape)
 	return data 
 
+def create_folder_result(link):
+	try:
+	    os.mkdir(link)
+	except OSError:
+	    print ("Creation of the directory %s failed" % link)
+	else:
+	    print ("Successfully created the directory %s " % link)
+
 def process_hub5(data = None):
 	resultA3 = []
 	resultA4 = []
@@ -50,11 +59,15 @@ def process_hub5(data = None):
 	if data != None:
 		A_N_source_added = np.hstack((A_N_source, data[0]))
 		A_N3_source_added = np.vstack((A_N3_source, data[1]))
+	else:
+		A_N_source_added = A_N_source
+		A_N3_source_added = A_N3_source
 	print("update reference:")
 	print("reference A_N: ",A_N_source_added.shape)
 	print("reference A_N3: ",A_N3_source_added.shape)
-	# test_folder = "./test_only_1/test/"
-	test_folder = "./fastsong7/test_data_Aniage_2/"
+	test_folder = "./test_only_1/test/"
+	# test_folder = "./fastsong7/test_data_Aniage_/"
+	# test_folder = "./test_data_Aniage_gap/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -72,13 +85,16 @@ def process_hub5(data = None):
 			A_N = A_N_source
 			A_N3 = A_N3_source
 			for sub_test in os.listdir(current_folder):
+				result_path = current_folder+'/'+sub_test
+				result_path = result_path[:-4]
+				create_folder_result(result_path)
 				print(current_folder+'/'+sub_test)
 				# if os.path.isdir(current_folder+'/'+sub_test) :
 				if sub_test != "_DS_Store" and sub_test[-1] == 't':
 					tmpT = []
 					tmpF = []
 					tmpG = []
-					full_matrix = load_missing()
+					full_matrix = load_missing(current_folder+'/'+sub_test)
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
 							# get data which corespond to starting frame of A1
@@ -104,7 +120,11 @@ def process_hub5(data = None):
 							A1_star8 = test_func(np.copy(A_N3_source_added), np.copy(A1zero))
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
-							dm
+
+							# save file for rendering
+							np.savetxt(result_path + "original.txt", A1, fmt = "%.2f")
+							np.savetxt(result_path + "PCA.txt", A1_star7, fmt = "%.2f")
+							np.savetxt(result_path + "our_method.txt", A1_star8, fmt = "%.2f")
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
@@ -147,7 +167,6 @@ if __name__ == '__main__':
 	print("reference source:")
 	print(source_AN.shape)
 	print(source_AN3.shape)
-
 	data_link = "./data3D/fastsong7.txt"
 	# data_link = "./data3D/135_02.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
@@ -156,4 +175,5 @@ if __name__ == '__main__':
 	Tracking3D = Tracking3D.astype(float)
 
 	result = process_hub5(data = [source_AN, source_AN3])
+	#result = process_hub5()
 	print(result)

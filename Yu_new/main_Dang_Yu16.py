@@ -6,17 +6,18 @@ from Yu_new.utils import *
 import copy
 
 class adaboost_16th():
-	def __init__(self, inner_function, number_loop = 20):
+	def __init__(self, inner_function, number_loop = 10):
 		self.iteration_lim = number_loop
 		self.function = inner_function
 		self.list_function = []
 		self.list_function.append(self.function)
 		self.list_beta = []
-		self.threshold = 0.8
-		self.power_coefficient = 4
+		self.threshold = 0.7
+		self.power_coefficient = 3
 		self.number_sample = inner_function.get_number_sample()
 		self.limit_error = 2
 		self.list_mean_error = []
+		self.partly_accumulate = []
 
 	def set_iteration(self, number):
 		self.iteration_lim = number
@@ -24,6 +25,7 @@ class adaboost_16th():
 	def train(self):
 		index_maxError = -1
 		index_maxPosition = -1
+		last_weight = 9999
 		for loop_i in range(self.iteration_lim):
 			print("looping: ", loop_i)
 			current_function = self.list_function[-1]
@@ -37,15 +39,15 @@ class adaboost_16th():
 				if (error_sample[index_maxError] > self.limit_error) and (index_maxPosition == -1):
 					index_maxPosition = loop_i
 			
-			self.threshold = np.median(error_sample)
-			# print("error_sample: ", error_sample)
-			# print("threshold: ", self.threshold)
+			# self.threshold = np.median(error_sample)
+			print("error_sample: ", error_sample)
+			print("threshold: ", self.threshold)
 			alpha = current_function.get_alpha()
 			weight_sample = current_function.get_weight()
 			if (loop_i - index_maxPosition >= 10) and (index_maxPosition != -1):
 				weight_sample[index_maxError] = 0
 				index_maxPosition = -1
-			# print("weight_sample: ", weight_sample)
+			print("weight_sample: ", weight_sample)
 			# compute error rate for function
 			for x in range(self.number_sample):
 				if error_sample[x] > self.threshold:
@@ -60,8 +62,8 @@ class adaboost_16th():
 				else:
 					new_distribution.append(weight_sample[x])
 				accumulate_Z += new_distribution[-1]
-			# print("accumulate_Z: ", accumulate_Z)
-			# print("accumulate_error_weight: ", accumulate_error_weight)
+			print("accumulate_Z: ", accumulate_Z)
+			print("accumulate_error_weight: ", accumulate_error_weight)
 			if accumulate_error_weight <= 0.00001:
 				self.iteration_lim = loop_i-1
 				print("/////////////////stop training ADABOOST/////////////")
@@ -72,8 +74,14 @@ class adaboost_16th():
 				break
 			for x in range(self.number_sample):
 				new_distribution[x] = new_distribution[x] / accumulate_Z
-			# print("new_distribution: ", new_distribution)
-			# print("finish loop: ", loop_i)
+			print("new_distribution: ", new_distribution)
+			self.partly_accumulate.append(self.interpolate_partly_accumulate(loop_i+1))
+			if self.partly_accumulate[-1] > last_weight:
+				self.iteration_lim = loop_i - 1
+				break
+			last_weight = self.partly_accumulate[-1]
+			print("error_accumulated: ",self.partly_accumulate[-1])
+			print("finish loop: ", loop_i)
 			# update new function
 			new_function = copy.deepcopy(current_function)
 			new_function.set_weight(np.copy(new_distribution))
@@ -113,6 +121,22 @@ class adaboost_16th():
 		final_result = result / sum_beta
 		return final_result
 
+	def interpolate_partly_accumulate(self, loop_number):
+		list_result = []
+		sum_beta = 0
+		for t in range(loop_number):
+			current_function = self.list_function[t]
+			list_error = current_function.interpolate_sample()
+			function_beta = np.log(1/self.list_beta[t])
+			list_result.append(function_beta * np.asarray(list_error))
+			sum_beta += function_beta
+		current_result  = list_result[0]
+		for t in range(1, loop_number):
+			current_result += list_result[t]
+
+		final_result = current_result / sum_beta
+		return np.mean(final_result)
+
 
 	def get_distribution_sample(self):
 		list_distri = []
@@ -131,6 +155,8 @@ def test_func(source_data, test_data):
 	boosting.train()
 	print(boosting.get_beta_info())
 	print(boosting.get_arbitrary_sample().get_alpha())
+	print("error_accumulated")
+	print(boosting.partly_accumulate)
 	result = boosting.interpolate_accumulate()
 	return result
 
