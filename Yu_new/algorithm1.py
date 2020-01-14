@@ -284,6 +284,7 @@ class Interpolation16th_F():
 			self.list_V0[i] = self.list_V0[i][:, :ksmall]
 			self.list_F.append(np.matmul(self.list_V0[i].T, self.list_V[i]))
 
+		self.weight_sample = [1.0/self.K]*self.K
 		if add_small_patch:
 			self.weight_sample = [0.2/self.K]*self.K
 			self.weight_sample[-1] += 0.4
@@ -325,7 +326,8 @@ class Interpolation16th_F():
 		left_hand = np.hstack([ x for x in list_P])
 		tmp_alpha = np.linalg.lstsq(np.matmul(left_hand.T, left_hand), np.matmul(left_hand.T, right_hand), rcond = None)[0]
 		sum_alpha = np.sum(tmp_alpha)
-		self.list_alpha = np.copy(tmp_alpha/sum_alpha)
+		# self.list_alpha = np.copy(tmp_alpha/sum_alpha)
+		self.list_alpha = np.copy(tmp_alpha)
 		# 
 		# debug alpha
 		# 
