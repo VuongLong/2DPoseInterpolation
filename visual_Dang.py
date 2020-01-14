@@ -19,9 +19,31 @@ def read_data(link):
 
 	matrix = np.array(matrix) 
 	matrix = np.squeeze(matrix)
-	print(matrix.shape)
-	np.savetxt("checkData.txt", matrix.T, fmt = "%.2f")
 	return matrix
+
+def read_new_bvh(link):
+	matrix = []
+	f=open(link, 'r')
+	for line in f:
+		elements = line.split(' ')
+		matrix.append(list(map(float, elements)))
+	f.close()
+
+	matrix = np.array(matrix) 
+	matrix = np.squeeze(matrix)
+	deleted_joint = [5, 9, 14, 18]
+	counter = 0
+	new_matrix = np.zeros((matrix.shape[0], matrix.shape[1]+12))
+	for xx in range(new_matrix.shape[1]):
+		joint_order_number = xx // 3
+		joint_order = xx % 3
+		if joint_order_number in deleted_joint:
+			if joint_order == 0:
+				counter = counter-3
+		new_matrix[:, xx] = matrix[:, counter]
+		counter += 1
+	print(new_matrix.shape)
+	return new_matrix
 
 
 if __name__ == '__main__':
@@ -54,7 +76,9 @@ if __name__ == '__main__':
 	# 16 RKnee
 	# 17 RAnkle
 	# 18
-	Tracking3D  = read_data("./data3D/fastsong8.txt")
+	# Tracking3D  = read_new_bvh("./render/1/original.txt")
+	Tracking3D  = read_new_bvh("./render/1/our_method.txt")
+	# Tracking3D  = read_new_bvh("./render/1/PCA.txt")
 	# Tracking3D  = read_data("./result.txt")
 	Tracking3D = Tracking3D.astype(float)
 	# np.savetxt("ChaiMue_take_001_Data.txt", Tracking3D, fmt = "%.3f", delimiter = ", ")

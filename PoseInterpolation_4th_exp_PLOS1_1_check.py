@@ -122,9 +122,9 @@ def process_hub5(data = None):
 								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
 
 							# save file for rendering
-							np.savetxt(result_path + "original.txt", A1, fmt = "%.2f")
-							np.savetxt(result_path + "PCA.txt", A1_star7, fmt = "%.2f")
-							np.savetxt(result_path + "our_method.txt", A1_star8, fmt = "%.2f")
+							np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
+							np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
+							np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
