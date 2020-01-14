@@ -284,7 +284,7 @@ class Interpolation16th_F():
 			self.list_V0[i] = self.list_V0[i][:, :ksmall]
 			self.list_F.append(np.matmul(self.list_V0[i].T, self.list_V[i]))
 
-		self.weight_sample = [1.0/self.K]*self.K
+		# self.weight_sample = [1.0/self.K]*self.K
 		if add_small_patch:
 			self.weight_sample = [0.2/self.K]*self.K
 			self.weight_sample[-1] += 0.4
