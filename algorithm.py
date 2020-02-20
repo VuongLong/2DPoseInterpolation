@@ -2262,6 +2262,43 @@ def PCA_PLOS1_F7(AA, matrix2):
 	check_interpolation(final_result[np.where(matrix2 == 0)])
 	return final_result
 
+
+def PCA_PLOS1_no_normalize(AA, AA1):
+	combine_matrix = np.vstack((AA, AA1))
+	[frames, columns] = combine_matrix.shape
+	columnindex = np.where(combine_matrix == 0)[1]
+	frameindex = np.where(combine_matrix == 0)[0]
+	columnwithgap = np.unique(columnindex)
+	markerwithgap = np.unique(columnwithgap // 3)
+	framewithgap = np.unique(frameindex)
+	M_zero = np.copy(combine_matrix)
+
+	N_nogap = np.delete(combine_matrix, framewithgap, 0)
+	N_zero = np.copy(N_nogap)
+	N_zero[:,columnwithgap] = 0
+
+	_, Sigma_nogap , U_N_nogap_VH = np.linalg.svd(N_nogap/np.sqrt(N_nogap.shape[0]-1), full_matrices = False)
+	U_N_nogap = U_N_nogap_VH.T
+	print(U_N_nogap.shape)
+	_, Sigma_zero , U_N_zero_VH = np.linalg.svd(N_zero/np.sqrt(N_zero.shape[0]-1), full_matrices = False)
+	U_N_zero = U_N_zero_VH.T
+	print(U_N_zero.shape)
+	ksmall = max(setting_rank(Sigma_zero), setting_rank(Sigma_nogap))
+	print("///////////////////////////////: ", ksmall)
+	U_N_nogap = U_N_nogap[:, :ksmall]
+	U_N_zero = U_N_zero[:, :ksmall]
+	T_matrix = np.matmul(U_N_nogap.T , U_N_zero)
+	reconstructData = np.matmul(np.matmul(np.matmul(M_zero, U_N_zero), T_matrix), U_N_nogap.T)
+	
+	# reverse normalization
+	tmp = np.copy(reconstructData)
+	result = np.copy(tmp[-AA1.shape[0]:,:])
+	final_result = np.copy(AA1)
+	final_result[np.where(AA1 == 0)] = result[np.where(AA1 == 0)]
+	print("checking result PCA long patch:")
+	check_interpolation(final_result[np.where(AA1 == 0)])
+	return final_result
+
 def get_max_array(arrayA, weight):
 	result = 0
 	for x in range(len(arrayA)):
@@ -2450,3 +2487,14 @@ def get_joint_over_Acolumn(A, frame_quantity, joint_index):
 		AA[x, joint_index*2] = 0
 		AA[x, joint_index*2+1] = 0
 	return AA
+
+
+def setting_rank(eigen_vector):
+	minCumSV = 0.99
+	sum_list = np.sum(eigen_vector)
+	current_sum = 0
+	for x in range(len(eigen_vector)):
+		current_sum += eigen_vector[x]
+		if current_sum > minCumSV * sum_list:
+			return x+1
+	return len(eigen_vector)
