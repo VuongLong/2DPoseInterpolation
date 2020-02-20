@@ -422,15 +422,43 @@ class interpolation_weighted_T():
 			self.list_Ti.append(np.copy(X[0]))
 		
 		# compute weight
-		list_Pmatrix = []
+	
+		list_left_matrix = []
 		for patch_number in range(self.K):
-			tmp = np.matmul(self.list_A[patch_number], self.UN) - matmul_list(
+			current_patch = np.matmul(self.list_A[patch_number], self.UN) - matmul_list(
 				[self.list_A0[patch_number], self.UN0, self.list_Ti[patch_number]])
-			list_Pmatrix.append(np.copy(tmp))
-			print(tmp.shape)
-		stop
+			for column in range(ksmall):
+				for clm in range(ksmall):
+					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
+					list_left_matrix.append(tmp)
+
+		left_matrix = np.vstack(list_left_matrix)
+
+		u, d, v = np.linalg.svd(left_matrix)
+		v = v.T
+		weight_list = v[:, -1]
+		W = np.diag(weight_list)
 		# compute alpha
-		
+			
+		list_Qjk = []
+		for j in range(self.K):
+			for h in range(self.K) :
+				tmpQ = matmul_list([matmul_list([self.list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+					W, self.list_A[j], self.UN])
+				list_Qjk.append(tmpQ)
+		Qjk = summatrix_list(list_Qjk)
+
+		list_Pij_patch = []
+		for patch_number in range(self.K):
+			list_tmp = []
+			for j in range(self.K):
+				for h in range(self.K):
+					tmpP = matmul_list([matmul_list([self.list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+						W, self.list_A0[j], self.UN0, self.list_Ti[patch_number]])
+					list_tmp.append(tmpP)
+			list_Pij_patch.append(summatrix_list(list_tmp))
+
+		stop
 		return self.list_alpha
 
 
