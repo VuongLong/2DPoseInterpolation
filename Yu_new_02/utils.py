@@ -109,3 +109,16 @@ def setting_rank(eigen_vector):
 		if current_sum > minCumSV * sum_list:
 			return x+1
 	return len(eigen_vector)
+
+
+def get_homogeneous_solve(A, eps=1e-15):
+    u, s, vh = np.linalg.svd(A)
+    null_space = np.compress(s <= eps, vh, axis=0)
+    return null_space.T
+
+def solution(U):
+    # find the eigenvalues and eigenvector of U(transpose).U
+    e_vals, e_vecs = np.linalg.eig(np.dot(U.T, U))  
+    print(e_vals)
+    # extract the eigenvector (column) associated with the minimum eigenvalue
+    return e_vecs[:, np.argmin(e_vals)] 
