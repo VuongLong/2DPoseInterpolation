@@ -116,7 +116,7 @@ def process_leng_missing():
 					print("patch add to missing: ", x)
 					# generate missing matrix
 					missing_matrix = generate_missing_joint_leng(
-						sample.shape[0], sample.shape[1], lmiss, 4)		
+						sample.shape[0], sample.shape[1], lmiss, 3)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
