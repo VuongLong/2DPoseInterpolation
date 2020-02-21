@@ -4,15 +4,18 @@ from Yu_new_02.preprocess import generate_patch_data, normalize
 from Yu_new_02.algorithm2 import * 
 from Yu_new_02.utils import *
 
-def interpolation_weighted_T_1702(source_data, test_data):
-	interpolation = interpolation_weighted_T(source_data, test_data)
+def interpolation_weighted_T_1702(source_data, test_data, norm = False):
+	interpolation = interpolation_weighted_T(source_data, test_data, norm)
 	result = interpolation.interpolate_missing()
 	return result
 
 
-def interpolation_T_1702(source_data, test_data):
-	interpolation = Interpolation_T(source_data, test_data)
-	result = interpolation.interpolate_missing()
+def interpolation_T_1702(source_data, test_data, norm = False):
+	interpolation = Interpolation_T(source_data, test_data, norm)
+	if norm:
+		result = interpolation.result_norm
+	else:
+		result = interpolation.result_nonorm
 	return result
 
 if __name__ == '__main__':

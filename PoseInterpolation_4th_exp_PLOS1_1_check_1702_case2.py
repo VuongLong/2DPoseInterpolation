@@ -1,4 +1,4 @@
-# compare with PCA or PLOS 1 without normalization
+# compare with PCA or PLOS 1 with normalization
 import numpy as np
 from data_utils import *
 from render_utils import *
@@ -11,7 +11,7 @@ import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./fastsong7/test_data_Aniage_2/3/1.txt"
+		link = "./test_data_Aniage_gap/1/13.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -94,7 +94,7 @@ def process_hub5(data = None):
 					tmpT = []
 					tmpF = []
 					tmpG = []
-					full_matrix = load_missing(current_folder+'/'+sub_test)
+					full_matrix = load_missing(None)
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
 							# get data which corespond to starting frame of A1
@@ -108,18 +108,18 @@ def process_hub5(data = None):
 							# tmpT.append(np.around(calculate_mae_matrix(
 							# 	A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star7 = PCA_PLOS1_no_normalize(np.copy(A_N3), A1zero)
+							A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
 							tmpT.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero))
+							A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
 							tmpF.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero))
+							A1_star9 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star9[np.where(A1zero == 0)]), decimals = 17))
-
+							break
 							# save file for rendering
 							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
 							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
@@ -127,10 +127,11 @@ def process_hub5(data = None):
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
-
+				break
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
 			resultA5.append(np.asarray(tmpA5).mean())
+			break
 	print(order_fol)
 	return [resultA3, resultA4, resultA5]
 
