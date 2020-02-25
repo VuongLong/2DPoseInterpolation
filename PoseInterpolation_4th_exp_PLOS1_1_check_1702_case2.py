@@ -67,7 +67,8 @@ def process_hub5(data = None):
 	print("reference A_N3: ",A_N3_source_added.shape)
 	# test_folder = "./test_only_1/test/"
 	# test_folder = "./fastsong7/test_data_Aniage_/"
-	test_folder = "./test_data_Aniage_gap/"
+	# test_folder = "./test_data_Aniage_gap/"
+	test_folder = "./test_data_CMU_gap/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
 		current_folder = test_folder + test_name
@@ -103,29 +104,26 @@ def process_hub5(data = None):
 							A1zero = np.copy(A1)
 							A1zero[np.where(missing_matrix == 0)] = 0
 							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
-
-							# A1_star3 = interpolation_24_v6(np.copy(A_N),np.copy(A1zero))
-							# tmpT.append(np.around(calculate_mae_matrix(
-							# 	A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-
-							A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
+			
+							# A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
+							A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
 							tmpT.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							tmpF.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							# tmpF.append(np.around(calculate_mae_matrix(
+								# A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							tmpG.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star9[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star9 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							# tmpG.append(np.around(calculate_mae_matrix(
+								# A1[np.where(A1zero == 0)]- A1_star9[np.where(A1zero == 0)]), decimals = 17))
 							# save file for rendering
 							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
 							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
 							#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
 				tmpA3.append(np.asarray(tmpT).sum())
-				tmpA4.append(np.asarray(tmpF).sum())
-				tmpA5.append(np.asarray(tmpG).sum())
+				tmpA4.append(np.asarray(tmpT).sum())
+				tmpA5.append(np.asarray(tmpT).sum())
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
 			resultA5.append(np.asarray(tmpA5).mean())
@@ -164,11 +162,12 @@ if __name__ == '__main__':
 	# print("reference source:")
 	# print(source_AN.shape)
 	# print(source_AN3.shape)
-	data_link = "./data3D/fastsong7.txt"
-	# data_link = "./data3D/135_02.txt"
+
+	# data_link = "./data3D/fastsong7.txt"
+	data_link = "./data3D/135_02.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
-	Tracking3D = remove_joint(Tracking3D)
+	# Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 
 	# result = process_hub5(data = [source_AN, source_AN3])
