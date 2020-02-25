@@ -6,7 +6,10 @@ from Yu_new_02.utils import *
 
 def interpolation_weighted_T_1702(source_data, test_data, norm = False):
 	interpolation = interpolation_weighted_T(source_data, test_data, norm)
-	result = interpolation.interpolate_missing()
+	if norm:
+		result = interpolation.result_norm
+	else:
+		result = interpolation.result_nonorm
 	return result
 
 
