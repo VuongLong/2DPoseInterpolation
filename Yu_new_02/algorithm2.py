@@ -585,13 +585,13 @@ class interpolation_weighted_T():
 			# X = np.linalg.lstsq(Ai0UN0, AiUN, rcond = None)
 			# self.list_Ti.append(np.copy(X[0]))
 
-			self.list_Ti.append(np.matmul(self.UN.T, self.UN0))
+			# self.list_Ti.append(np.matmul(self.UN.T, self.UN0))
 			
-			# UN0T_Ai0T = np.matmul(self.UN0.T, list_A0[patch_number].T)
-			# left_form = np.matmul(UN0T_Ai0T, AiUN)
-			# right_form = np.matmul(UN0T_Ai0T, Ai0UN0)
-			# tmpT = np.matmul(np.linalg.inv(left_form), right_form)
-			# self.list_Ti.append(tmpT)
+			UN0T_Ai0T = np.matmul(self.UN0.T, list_A0[patch_number].T)
+			left_form = np.matmul(UN0T_Ai0T, AiUN)
+			right_form = np.matmul(UN0T_Ai0T, Ai0UN0)
+			tmpT = np.matmul(np.linalg.inv(left_form), right_form)
+			self.list_Ti.append(tmpT)
 		
 		# compute weight
 	
