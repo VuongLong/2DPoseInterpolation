@@ -1614,7 +1614,7 @@ def PCA_PLOS1_F4(AA, AA1):
 	for x in range(len(markerwithgap)):
 		weight_matrix = np.zeros((frames, columns//3))
 		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frames):
+		for i in range(max(frames-400-len( framewithgap), 0), frames):
 			valid = True
 			if euclid_dist([0, 0, 0] ,get_point(Data, i, markerwithgap[x])) == 0 :
 				valid = False

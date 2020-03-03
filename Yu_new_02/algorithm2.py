@@ -294,7 +294,7 @@ class Interpolation16th_F():
 		return self.list_alpha
 
 
-def compute_norm(combine_matrix):
+def compute_norm(combine_matrix, downsample = False, gap_strategies = False):
 	AA = np.copy(combine_matrix)
 	weightScale = 200
 	MMweight = 0.02
@@ -323,13 +323,17 @@ def compute_norm(combine_matrix):
 	Data[np.where(AA == 0)] = 0
 	
 	# calculate weight vector 
+	frame_range_start = 0
+	if downsample:
+		frame_range_start = max(frames-400-len( framewithgap), 0)
+
 	weight_matrix = np.zeros((frames, columns//3))
 	weight_matrix_coe = np.zeros((frames, columns//3))
 	weight_vector = np.zeros((len(markerwithgap), columns//3))
 	for x in range(len(markerwithgap)):
 		weight_matrix = np.zeros((frames, columns//3))
 		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frames):
+		for i in range(frame_range_start, frames):
 			valid = True
 			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0 :
 				valid = False
@@ -348,7 +352,8 @@ def compute_norm(combine_matrix):
 		weight_vector_ith = sum_matrix / sum_matrix_coe
 		weight_vector_ith[markerwithgap[x]] = 0
 		weight_vector[x] = weight_vector_ith
-	weight_vector = np.min(weight_vector, 0)
+	if gap_strategies == False:
+		weight_vector = np.min(weight_vector, 0)
 	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
 	weight_vector[markerwithgap] = MMweight
 	M_zero = np.copy(Data)
