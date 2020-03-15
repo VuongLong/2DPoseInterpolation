@@ -659,3 +659,144 @@ class interpolation_weighted_T():
 
 		# self.de_normalization()
 		return result
+
+
+class interpolation_weighted_gap():
+	def __init__(self, reference_matrix, missing_matrix):
+		# this function is integrated with norm so no norm option as previous approaches
+		
+		self.fix_leng = missing_matrix.shape[0]
+		self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
+		self.normed_matries, self.reconstruct_matries = self.normalization()
+		self.A1 = np.copy(self.normed_matries[0])
+		self.AN = np.copy(self.normed_matries[1])
+		self.AN0 = np.copy(self.normed_matries[2])
+		self.K = int(self.AN.shape[0] / self.fix_leng)
+		self.compute_svd()
+		self.result_norm = self.interpolate_missing()
+		self.de_normalization()
+
+	def normalization(self):
+		normed_matries, reconstruct_matries = compute_norm(self.combine_matrix)
+		return normed_matries, reconstruct_matries
+
+
+	def de_normalization(self):
+		M_zero = self.normed_matries[0]
+		reconstructData = np.copy(self.result_norm)
+		m8 = np.ones((reconstructData.shape[0],1))*self.reconstruct_matries[1]
+		m3 = np.matmul( np.ones((M_zero.shape[0], 1)), self.reconstruct_matries[2])
+		reconstructData = self.reconstruct_matries[0] + (np.multiply(reconstructData, m8) / m3)
+		tmp = reconstructData + self.reconstruct_matries[3]
+		result = np.copy(tmp)
+
+		final_result = np.copy(self.combine_matrix)
+		final_result[np.where(self.combine_matrix == 0)] = result[np.where(self.combine_matrix == 0)]
+		self.result_norm = np.copy(final_result[-self.fix_leng:])
+		return self.result_norm
+
+
+
+	def compute_svd(self):
+		p_AN = self.AN
+		p_AN0 = self.AN0
+		list_A0 = []
+		list_A = []
+
+		r = len(self.AN0)
+		l = r - self.fix_leng
+
+		while l >= 0:
+			list_A.append(np.copy(p_AN[l:r]))
+			list_A0.append(np.copy(p_AN0[l:r]))
+			l -= self.fix_leng
+			r -= self.fix_leng
+
+		_, tmp_Usigma, tmp_U = np.linalg.svd(p_AN/np.sqrt(p_AN.shape[0]-1), full_matrices = False)
+		self.UN = np.copy(tmp_U.T)
+
+		_, tmp_U0sigma, tmp_U0 = np.linalg.svd(p_AN0/np.sqrt(p_AN0.shape[0]-1), full_matrices = False)
+		self.UN0 = np.copy(tmp_U0.T)
+
+		ksmall = max(setting_rank(tmp_Usigma), setting_rank(tmp_U0sigma))
+		
+		self.UN = self.UN[:, :ksmall]
+		self.UN0 = self.UN0[:, :ksmall]
+		self.list_Ti = []
+
+		for patch_number in range(self.K):
+			AiUN = np.matmul(list_A[patch_number], self.UN)
+			Ai0UN0 = np.matmul(list_A0[patch_number], self.UN0)
+			
+			# X = np.linalg.lstsq(Ai0UN0, AiUN, rcond = None)
+			# self.list_Ti.append(np.copy(X[0]))
+
+			self.list_Ti.append(np.matmul(self.UN.T, self.UN0))
+			
+			# UN0T_Ai0T = np.matmul(self.UN0.T, list_A0[patch_number].T)
+			# left_form = np.matmul(UN0T_Ai0T, AiUN)
+			# right_form = np.matmul(UN0T_Ai0T, Ai0UN0)
+			# tmpT = np.matmul(np.linalg.inv(left_form), right_form)
+			# self.list_Ti.append(tmpT)
+		
+		# compute weight
+	
+		list_left_matrix = []
+		for patch_number in range(self.K):
+			current_patch = np.matmul(list_A[patch_number], self.UN) - matmul_list(
+				[list_A0[patch_number], self.UN0, self.list_Ti[patch_number]])
+			for column in range(ksmall):
+				for clm in range(ksmall):
+					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
+					list_left_matrix.append(tmp)
+
+		left_matrix = np.vstack(list_left_matrix)
+
+		u, d, v = np.linalg.svd(left_matrix)
+		v = v.T
+		weight_list = v[:, -1]
+		self.W = np.diag(weight_list)
+		# compute alpha
+			
+		list_Qjk = []
+		for j in range(self.K):
+			for h in range(self.K) :
+				tmpQ = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+					self.W, list_A[j], self.UN])
+				list_Qjk.append(tmpQ)
+		right_form = summatrix_list(list_Qjk)
+		xx, yy = right_form.shape
+		right_form = right_form.reshape(xx*yy, 1)
+		list_Pij_patch = []
+		for patch_number in range(self.K):
+			list_tmp = []
+			for j in range(self.K):
+				for h in range(self.K):
+					tmpP = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+						self.W, list_A0[j], self.UN0, self.list_Ti[patch_number]])
+					list_tmp.append(tmpP)
+			tmp = summatrix_list(list_tmp)
+			xx, yy = tmp.shape
+			list_Pij_patch.append(tmp.reshape(xx*yy, 1))
+
+		left_form = np.hstack([ x for x in list_Pij_patch])
+		self.list_alpha = np.linalg.lstsq(left_form, right_form, rcond = None)[0]
+		# self.list_alpha = np.linalg.lstsq(np.matmul(left_form.T, left_form), np.matmul(left_form.T, right_form), rcond = None)[0]
+		return self.list_alpha
+
+
+	def interpolate_missing(self):
+		# self.normalization()
+
+		list_U0TU = []
+		for patch_number in range(self.K):
+			tmp = self.list_alpha[patch_number] * matmul_list([self.UN0, self.list_Ti[patch_number], self.UN.T])
+			list_U0TU.append(tmp)
+		alpha_U0TU = summatrix_list(list_U0TU)
+
+		result = np.matmul(self.A1, alpha_U0TU)
+		final_result = np.copy(self.A1)
+		final_result[np.where(self.A1 == 0)] = result[np.where(self.A1 == 0)]
+
+		# self.de_normalization()
+		return result

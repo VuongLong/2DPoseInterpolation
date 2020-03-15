@@ -6,7 +6,7 @@ from algorithm import *
 from arguments import arg
 import sys
 import random
-from Yu_new_02.main import interpolation_weighted_T_1702, interpolation_T_1702
+from Yu_new_02.main import interpolation_weighted_T_1702, interpolation_T_1702, interpolation_weighted_T_gap
 import os
 
 def load_missing(sub_link = None):
@@ -105,24 +105,24 @@ def process_hub5(data = None):
 							A1zero[np.where(missing_matrix == 0)] = 0
 							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
 			
-							A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
-							# A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
-							tmpT.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star7 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
+							# # A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
+							# tmpT.append(np.around(calculate_mae_matrix(
+							# 	A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							tmpF.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							# tmpF.append(np.around(calculate_mae_matrix(
+							# 	A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star9 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							A1_star9 = interpolation_weighted_T_gap(np.copy(A_N3_source_added), np.copy(A1zero))
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star9[np.where(A1zero == 0)]), decimals = 17))
 							# save file for rendering
 							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
 							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
 							#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
-				tmpA3.append(np.asarray(tmpT).sum())
-				tmpA4.append(np.asarray(tmpF).sum())
+				tmpA3.append(np.asarray(tmpG).sum())
+				tmpA4.append(np.asarray(tmpG).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())

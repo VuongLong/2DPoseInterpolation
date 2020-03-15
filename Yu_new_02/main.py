@@ -21,5 +21,12 @@ def interpolation_T_1702(source_data, test_data, norm = False):
 		result = interpolation.result_nonorm
 	return result
 
+def interpolation_weighted_T_gap(source_data, test_data):
+	interpolation = interpolation_weighted_gap(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
+
+
 if __name__ == '__main__':
 	print("ok")
