@@ -537,17 +537,17 @@ class Interpolation_T():
 
 class interpolation_weighted_T():
 	def __init__(self, reference_matrix, missing_matrix, norm, downsample, strategy_R2 = False, marker = None):
-		self.A1 = np.copy(missing_matrix)
-		self.AN = np.copy(reference_matrix)
-		self.K = int(self.AN.shape[0] / missing_matrix.shape[0])
+		# self.A1 = np.copy(missing_matrix)
+		# self.AN = np.copy(reference_matrix)
+		# self.K = int(self.AN.shape[0] / missing_matrix.shape[0])
 		self.strategy_R2 = strategy_R2
 		self.marker = marker
-		# self.fix_leng = 100
+		# # self.fix_leng = 100
 		self.fix_leng = missing_matrix.shape[0]
 		self.downsample = downsample
-		self.AN0 = self.create_AN0()
-		self.compute_svd()
-		self.result_nonorm = self.interpolate_missing()
+		# self.AN0 = self.create_AN0()
+		# self.compute_svd()
+		# self.result_nonorm = self.interpolate_missing()
 		if norm:
 			self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
 			self.normed_matries, self.reconstruct_matries = self.normalization()
