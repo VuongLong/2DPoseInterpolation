@@ -20,6 +20,9 @@ def interpolation_weighted_T_1702(source_data, test_data, norm = False, downsamp
 		markerwithgap = np.unique(columnwithgap // 3)
 		frameindex = np.where(AA == 0)[0]
 		framewithgap = np.unique(frameindex)
+		missing_frame_testdata = np.unique(np.where(test_data == 0)[0])
+		list_frame = np.arange(test_data.shape[0])
+		full_frame_testdata = source_data.shape[0] + np.asarray([i for i in list_frame if i not in missing_frame_testdata])
 		for marker in markerwithgap:
 			missing_frame = np.where(test_data[:, marker*3] == 0)
 			EuclDist2Marker = compute_weight_vect_norm([marker], downsample, AA)
@@ -27,9 +30,9 @@ def interpolation_weighted_T_1702(source_data, test_data, norm = False, downsamp
 			# remove the columns distal to current marker
 			Data_remove_joint = np.copy(AA)
 			for sub_marker in range(len(EuclDist2Marker)):
-				if EuclDist2Marker[sub_marker] > thresh:
+				if EuclDist2Marker[sub_marker] > 100:
 					Data_remove_joint[:,sub_marker*3:marker*3+3] = 0
-			Data_remove_joint[:, marker*3:marker*3+3] = AA[:, marker*3:marker*3+3]
+			Data_remove_joint[:, marker*3:marker*3+3] = np.copy(AA[:, marker*3:marker*3+3])
 			
 			frames_missing_marker = np.where(Data_remove_joint[:, marker*3] == 0)
 			# find overlap gap with marker
@@ -44,11 +47,16 @@ def interpolation_weighted_T_1702(source_data, test_data, norm = False, downsamp
 			partly_sourcedata = Data_remove_joint[:len_sourcedata,:]
 			# add frames with gaps in marker into the end of the matrix
 			# change to our algorithm, that would be test_data
-			len_testdata = test_data.shape[0]
-			partly_test_data = Data_remove_joint[-len_testdata:,:]
-
-			interpolation_partly = interpolation_weighted_T(partly_sourcedata, partly_test_data, norm, downsample, strategy_R2 = True, marker = marker)
-			result[missing_frame, marker*3 : marker*3+3]  = interpolation_partly.result_norm[missing_frame, marker*3 : marker*3+3]
+			
+			full_test_data = Data_remove_joint[full_frame_testdata, :]
+			missing_test_data = Data_remove_joint[frames_missing_marker,:][0]
+			partly_test_data = np.vstack([missing_test_data, full_test_data])
+			np.savetxt("check1.txt", partly_test_data, fmt = "%.1f")
+			interpolation_partly = interpolation_weighted_T(source_data, test_data, norm, downsample, strategy_R2 = True, marker = marker)
+			counter = 0
+			for frame_idx in missing_frame[0]:
+				result[frame_idx, marker*3 : marker*3+3]  = np.copy(interpolation_partly.result_norm[counter, marker*3 : marker*3+3])
+				counter += 1
 	else:
 		interpolation = interpolation_weighted_T(source_data, test_data, norm, downsample)
 		if norm:

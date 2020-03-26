@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import math
 from Yu_new_02.preprocess import normalize
 from Yu_new_02.utils import *
 
@@ -315,13 +316,12 @@ def compute_weight_vect_norm(markerwithgap, downsample, Data, strategy_R2 = Fals
 		framewithgap = np.unique(frameindex)
 		frame_range_start = 0
 	else: 
-		frameindex = np.where(AA[:, marker*3] == 0)[0]
+		frameindex = np.where(AA[:, marker*3+1] == 0)[0]
 		framewithgap = np.unique(frameindex)
 		frame_range_start = 0
 
 	if downsample:
 		frame_range_start = max(frames-500-len(framewithgap), 0)
-
 	weight_vector = np.zeros((len(markerwithgap), columns//3))
 	for x in range(len(markerwithgap)):
 		weight_matrix = np.zeros((frames-frame_range_start, columns//3))
@@ -335,7 +335,6 @@ def compute_weight_vect_norm(markerwithgap, downsample, Data, strategy_R2 = Fals
 					if j != markerwithgap[x]:
 						point1 = get_point(Data, i, markerwithgap[x])
 						point2 = get_point(Data, i, j)
-						tmp = 0
 						if euclid_dist(point2, [0, 0, 0]) != 0:
 							weight_matrix[i-frame_range_start][j] = euclid_dist(point2, point1)
 							weight_matrix_coe[i-frame_range_start][j] = 1
@@ -348,6 +347,9 @@ def compute_weight_vect_norm(markerwithgap, downsample, Data, strategy_R2 = Fals
 	weight_vector = np.min(weight_vector, 0)
 	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
 	weight_vector[markerwithgap] = MMweight
+	for x in range(len(weight_vector)):
+		if math.isnan(weight_vector[x]) :
+			weight_vector[x] = 0
 	return weight_vector
 
 def compute_norm(combine_matrix, downsample = False, strategy_R2 = False, marker = None):
@@ -365,6 +367,8 @@ def compute_norm(combine_matrix, downsample = False, strategy_R2 = False, marker
 		frameindex = np.where(AA[:,marker*3] == 0)[0]
 		columnwithgap = np.unique(columnindex)
 		markerwithgap = np.unique(columnwithgap // 3)
+		print("marker: ")
+		print(markerwithgap)
 		framewithgap = np.unique(frameindex)
 		# bug here
 	Data_without_gap = np.delete(AA, columnwithgap, 1)
@@ -388,22 +392,19 @@ def compute_norm(combine_matrix, downsample = False, strategy_R2 = False, marker
 	
 	# calculate weight vector 
 	weight_vector = compute_weight_vect_norm(markerwithgap, downsample, Data)
-
 	M_zero = np.copy(Data)
 	N_nogap = np.delete(Data, framewithgap, 0)
-	np.savetxt("check.txt", N_nogap, fmt = "%.2f")
 	N_zero = np.copy(N_nogap)
 	N_zero[:,columnwithgap] = 0
-	
 	mean_N_nogap = np.mean(N_nogap, 0)
 	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
 
 	mean_N_zero = np.mean(N_zero, 0)
 	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
 	stdev_N_no_gaps = np.std(N_nogap, 0)
+
 	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
-
-
+	
 	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
 	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
 	
@@ -597,7 +598,6 @@ class interpolation_weighted_T():
 		p_AN0 = self.AN0
 		list_A0 = []
 		list_A = []
-
 		r = len(self.AN0)
 		l = r - self.fix_leng
 
@@ -614,8 +614,6 @@ class interpolation_weighted_T():
 		self.UN0 = np.copy(tmp_U0.T)
 
 		ksmall = max(setting_rank(tmp_Usigma), setting_rank(tmp_U0sigma))
-		np.savetxt("sigma1.txt", p_AN, fmt = "%.2f")
-		np.savetxt("sigma2.txt", p_AN0, fmt = "%.2f")
 		self.UN = self.UN[:, :ksmall]
 		self.UN0 = self.UN0[:, :ksmall]
 		self.list_Ti = []
