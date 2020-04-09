@@ -11,7 +11,7 @@ import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data_Aniage_gap/12/17.txt"
+		link = "./test_data_Aniage_gap/1/14.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -95,7 +95,7 @@ def process_hub5(data = None):
 					tmpT = []
 					tmpF = []
 					tmpG = []
-					full_matrix = load_missing(current_folder+'/'+sub_test)
+					full_matrix = load_missing()
 					for x in range(number_patch):
 						if patch_arr[x] > 0:
 							# get data which corespond to starting frame of A1
@@ -110,9 +110,9 @@ def process_hub5(data = None):
 							# tmpT.append(np.around(calculate_mae_matrix(
 							# 	A1[np.where(A1zero == 0)]- A1_star7[np.where(A1zero == 0)]), decimals = 17))
 
-							# A1_star8 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							# tmpF.append(np.around(calculate_mae_matrix(
-							# 	A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
+							A1_star8 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							tmpF.append(np.around(calculate_mae_matrix(
+								A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17))
 
 							A1_star9 = interpolation_weighted_T_gap(np.copy(A_N3_source_added), np.copy(A1zero))
 							tmpG.append(np.around(calculate_mae_matrix(
@@ -121,9 +121,10 @@ def process_hub5(data = None):
 							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
 							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
 							#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
-				tmpA3.append(np.asarray(tmpG).sum())
+				tmpA3.append(np.asarray(tmpF).sum())
 				tmpA4.append(np.asarray(tmpG).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
+				break
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
 			resultA5.append(np.asarray(tmpA5).mean())
@@ -163,11 +164,11 @@ if __name__ == '__main__':
 	# print(source_AN.shape)
 	# print(source_AN3.shape)
 
-	# data_link = "./data3D/fastsong7.txt"
-	data_link = "./data3D/135_02.txt"
+	data_link = "./data3D/fastsong7.txt"
+	# data_link = "./data3D/135_02.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
-	# Tracking3D = remove_joint(Tracking3D)
+	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 
 	# result = process_hub5(data = [source_AN, source_AN3])
