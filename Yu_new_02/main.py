@@ -26,6 +26,11 @@ def interpolation_weighted_T_gap(source_data, test_data):
 	result = interpolation.result_norm
 	return result
 
+def interpolation_weighted_dang(source_data, test_data):
+	interpolation = interpolation_weighted_gap_dang(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
 
 
 if __name__ == '__main__':
