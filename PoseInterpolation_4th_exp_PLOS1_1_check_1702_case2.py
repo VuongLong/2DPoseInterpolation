@@ -11,7 +11,7 @@ import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data_Aniage_gap/9/17.txt"
+		link = "./test_data_Aniage_gap/9/9.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -58,8 +58,8 @@ def process_hub5(data = None):
 	print("original data reference A_N: ",A_N_source.shape)
 	print("original data reference A_N3: ",A_N3_source.shape)
 	if data != None:
-		A_N_source_added = np.hstack((A_N_source, data[0]))
-		A_N3_source_added = np.vstack((A_N3_source, data[1]))
+		A_N_source_added = np.hstack(( data[0], A_N_source))
+		A_N3_source_added = np.vstack((data[1], A_N3_source))
 	else:
 		A_N_source_added = A_N_source
 		A_N3_source_added = A_N3_source
@@ -68,7 +68,7 @@ def process_hub5(data = None):
 	print("reference A_N3: ",A_N3_source_added.shape)
 	test_folder = "./test_only_1/test/"
 	# test_folder = "./fastsong7/test_data_Aniage_/"
-	# test_folder = "./test_data_Aniage_gap/"
+	# test_folder = "./test_data_Aniage_leng/"
 	# test_folder = "./test_data_CMU_gap/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
@@ -107,26 +107,27 @@ def process_hub5(data = None):
 							missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
 							A1zero = np.copy(A1)
 							A1zero[np.where(missing_matrix == 0)] = 0
-							tmptmp = np.vstack((np.copy(A_N3),np.copy(A1zero)))
-							
+							# tmp = np.vstack((A_N3_source_added, A1))
+							# np.savetxt("data_ANIAGE.txt", tmp, fmt = "%.2f")
+							# stop
 							A1_star3 = interpolation_weighted_dang(np.copy(A_N3_source_added), np.copy(A1zero))
 							tmpT.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star4 = PCA_PLOS1_F4(np.copy(A_N3), np.copy(A1zero))
-							# A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
-							tmpF.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+							# A1_star4 = PCA_PLOS1_F4(np.copy(A_N3_source_added), np.copy(A1zero))
+							# # A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
+							# tmpF.append(np.around(calculate_mae_matrix(
+							# 	A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
 						
 							A1_star5 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
 							tmpG.append(np.around(calculate_mae_matrix(
 								A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
 
-							A1_star6 = interpolation_weighted_T_gap(np.copy(A_N3_source_added), np.copy(A1zero))
-							tmpV.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
-							# save file for rendering
+							# A1_star6 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+							# tmpV.append(np.around(calculate_mae_matrix(
+							# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+							# # save file for rendering
 							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
 							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
 							#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
@@ -145,34 +146,34 @@ def process_hub5(data = None):
 
 if __name__ == '__main__':
 
-	# refer_link = ["./data3D/fastsong2.txt","./data3D/fastsong3.txt","./data3D/fastsong4.txt","./data3D/fastsong5.txt","./data3D/fastsong6.txt","./data3D/fastsong8.txt",]
-	# resource_refer = [[0, 300], [0, 600], [80, 380], [0, 500], [0, 600], [0, 800]]
+	refer_link = ["./data3D/fastsong6.txt",]
+	resource_refer = [[50, 250]]
 	# refer_link = ["./data3D/fastsong7.txt"]
 	# resource_refer = [[450, 750]]
-	# tmp_AN = []
-	# tmp_AN3= []
-	# counter = 0
-	# for x in refer_link:
-	# 	print("reading source: ", x)
-	# 	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
-	# 	source , _  = read_tracking_data3D_v2(x)
-	# 	source = remove_joint(source)
-	# 	source = source.astype(float)
-	# 	source = source[resource_refer[counter][0]:resource_refer[counter][1]]
-	# 	counter += 1
-	# 	K = source.shape[0] // arg.length3D
-	# 	list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-	# 	AN_source = np.hstack(
-	# 		[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-	# 	tmp_AN.append(AN_source)
-	# 	AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-	# 	tmp_AN3.append(AN3_source)
-	# source_AN = np.hstack(tmp_AN)
-	# source_AN3 = np.vstack(tmp_AN3)
+	tmp_AN = []
+	tmp_AN3= []
+	counter = 0
+	for x in refer_link:
+		print("reading source: ", x)
+		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+		source , _  = read_tracking_data3D_v2(x)
+		source = remove_joint(source)
+		source = source.astype(float)
+		source = source[resource_refer[counter][0]:resource_refer[counter][1]]
+		counter += 1
+		K = source.shape[0] // arg.length3D
+		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
+		AN_source = np.hstack(
+			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
+		tmp_AN.append(AN_source)
+		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+		tmp_AN3.append(AN3_source)
+	source_AN = np.hstack(tmp_AN)
+	source_AN3 = np.vstack(tmp_AN3)
 
-	# print("reference source:")
-	# print(source_AN.shape)
-	# print(source_AN3.shape)
+	print("reference source:")
+	print(source_AN.shape)
+	print(source_AN3.shape)
 
 	data_link = "./data3D/fastsong7.txt"
 	# data_link = "./data3D/135_02.txt"
@@ -180,7 +181,6 @@ if __name__ == '__main__':
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
 	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
-
 	# result = process_hub5(data = [source_AN, source_AN3])
 	result = process_hub5()
 	print(result)

@@ -77,15 +77,20 @@ if __name__ == '__main__':
 	# 17 RAnkle
 	# 18
 	# Tracking3D  = read_new_bvh("./render/1/original.txt")
-	Tracking3D  = read_new_bvh("./render/1/our_method.txt")
+	# Tracking3D  = read_new_bvh("./render/1/our_method.txt")
 	# Tracking3D  = read_new_bvh("./render/1/PCA.txt")
 	# Tracking3D  = read_data("./result.txt")
+	data_link = "./data3D/fastsong7.txt"
+	# data_link = "./data3D/135_02.txt"
+	Tracking3D, _  = read_tracking_data3D_v2(data_link)
 	Tracking3D = Tracking3D.astype(float)
 	# np.savetxt("ChaiMue_take_001_Data.txt", Tracking3D, fmt = "%.3f", delimiter = ", ")
 	fig = plt.figure()
 	fig.set_size_inches(8, 12)
 	ax = fig.add_subplot(111, projection='3d')
 	for index in range(0, Tracking3D.shape[0]):
+		if index > 10: 
+			break
 		plt.cla()
 		print(index)
 		frame = Tracking3D[index]
@@ -112,7 +117,7 @@ if __name__ == '__main__':
 			dad = dad_arr[x][0]
 			child = dad_arr[x][1]
 			my_color = 'b'
-			if x == 8:
+			if (dad == 12) or (child == 12):
 				my_color = 'g'
 			xxs = [xs[dad],xs[child]]
 			yys = [ys[dad],ys[child]]
@@ -138,4 +143,4 @@ if __name__ == '__main__':
 
 	plt.show()
 	plt.close()
-
+	print("done")
