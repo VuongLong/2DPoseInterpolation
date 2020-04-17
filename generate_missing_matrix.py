@@ -37,7 +37,7 @@ def generate_missing_joint_leng(n, m, frame_length, number_gap):
 
 
 def generate_missing_joint_gap(n, m, frame_length, number_gap):
-	frames = 50
+	frames = 70
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
 	np.random.shuffle(joints)
@@ -116,7 +116,7 @@ def process_leng_missing():
 					print("patch add to missing: ", x)
 					# generate missing matrix
 					missing_matrix = generate_missing_joint_leng(
-						sample.shape[0], sample.shape[1], lmiss, 10)		
+						sample.shape[0], sample.shape[1], lmiss, 5)		
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
