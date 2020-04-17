@@ -1,7 +1,19 @@
 import numpy as np
 import random
+import math
 from Yu_new_02.preprocess import normalize
 from Yu_new_02.utils import *
+
+# reference data indicates training data
+	# missing matrix indicates testing data
+	# norm indicates choosing normalization or not
+	
+	# strategy_R2 indicates choosing R2 or not, not choosing R2 means choosing R1. 
+	# R1, R2 regard the defination in PLOS1 paper 2016 
+
+	# downsample indicates choosing downsample for reference data or not
+	# normally reference data contains loads of frames, downsample only chooses up to 500 frames to compute weight
+	# downsample's computation time surpass the original
 
 class Interpolation16th_F():
 	def __init__(self, reference_matrix, missing_matrix):
@@ -294,17 +306,73 @@ class Interpolation16th_F():
 		return self.list_alpha
 
 
-def compute_norm(combine_matrix, downsample = False, gap_strategies = False):
-	AA = np.copy(combine_matrix)
+def compute_weight_vect_norm(markerwithgap, downsample, Data, strategy_R2 = False, marker = None):
 	weightScale = 200
 	MMweight = 0.02
+	AA = np.copy(Data)
 	[frames, columns] = AA.shape
-	columnindex = np.where(AA == 0)[1]
-	frameindex = np.where(AA == 0)[0]
-	columnwithgap = np.unique(columnindex)
-	markerwithgap = np.unique(columnwithgap // 3)
-	framewithgap = np.unique(frameindex)
+	if strategy_R2 == False:
+		frameindex = np.where(AA == 0)[0]
+		framewithgap = np.unique(frameindex)
+		frame_range_start = 0
+	else: 
+		frameindex = np.where(AA[:, marker*3+1] == 0)[0]
+		framewithgap = np.unique(frameindex)
+		frame_range_start = 0
+
+	if downsample:
+		frame_range_start = max(frames-500-len(framewithgap), 0)
+	weight_vector = np.zeros((len(markerwithgap), columns//3))
+	for x in range(len(markerwithgap)):
+		weight_matrix = np.zeros((frames-frame_range_start, columns//3))
+		weight_matrix_coe = np.zeros((frames-frame_range_start, columns//3))
+		for i in range(frame_range_start, frames):
+			valid = True
+			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0 :
+				valid = False
+			if valid:
+				for j in range(columns//3):
+					if j != markerwithgap[x]:
+						point1 = get_point(Data, i, markerwithgap[x])
+						point2 = get_point(Data, i, j)
+						if euclid_dist(point2, [0, 0, 0]) != 0:
+							weight_matrix[i-frame_range_start][j] = euclid_dist(point2, point1)
+							weight_matrix_coe[i-frame_range_start][j] = 1
+
+		sum_matrix = np.sum(weight_matrix, 0)
+		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
+		weight_vector_ith = sum_matrix / sum_matrix_coe
+		weight_vector_ith[markerwithgap[x]] = 0
+		weight_vector[x] = weight_vector_ith
+	weight_vector = np.min(weight_vector, 0)
+	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
+	weight_vector[markerwithgap] = MMweight
+	for x in range(len(weight_vector)):
+		if math.isnan(weight_vector[x]) :
+			weight_vector[x] = 0
+	return weight_vector
+
+def compute_norm(combine_matrix, downsample = False, strategy_R2 = False, marker = None):
+	AA = np.copy(combine_matrix)
+	
+	[frames, columns] = AA.shape
+	if strategy_R2 == False:
+		columnindex = np.where(AA == 0)[1]
+		frameindex = np.where(AA == 0)[0]
+		columnwithgap = np.unique(columnindex)
+		markerwithgap = np.unique(columnwithgap // 3)
+		framewithgap = np.unique(frameindex)
+	else:
+		columnindex = np.asarray([marker*3, marker*3+1, marker*3+2])
+		frameindex = np.where(AA[:,marker*3] == 0)[0]
+		columnwithgap = np.unique(columnindex)
+		markerwithgap = np.unique(columnwithgap // 3)
+		print("marker: ")
+		print(markerwithgap)
+		framewithgap = np.unique(frameindex)
+		# bug here
 	Data_without_gap = np.delete(AA, columnwithgap, 1)
+
 	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
 	columnWithoutGap = Data_without_gap.shape[1]
 
@@ -323,54 +391,20 @@ def compute_norm(combine_matrix, downsample = False, gap_strategies = False):
 	Data[np.where(AA == 0)] = 0
 	
 	# calculate weight vector 
-	frame_range_start = 0
-	if downsample:
-		frame_range_start = max(frames-400-len( framewithgap), 0)
-
-	weight_matrix = np.zeros((frames, columns//3))
-	weight_matrix_coe = np.zeros((frames, columns//3))
-	weight_vector = np.zeros((len(markerwithgap), columns//3))
-	for x in range(len(markerwithgap)):
-		weight_matrix = np.zeros((frames, columns//3))
-		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frame_range_start, frames):
-			valid = True
-			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0 :
-				valid = False
-			if valid:
-				for j in range(columns//3):
-					if j != markerwithgap[x]:
-						point1 = get_point(Data, i, markerwithgap[x])
-						point2 = get_point(Data, i, j)
-						tmp = 0
-						if euclid_dist(point2, [0, 0, 0]) != 0:
-							weight_matrix[i][j] = euclid_dist(point2, point1)
-							weight_matrix_coe[i][j] = 1
-
-		sum_matrix = np.sum(weight_matrix, 0)
-		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
-		weight_vector_ith = sum_matrix / sum_matrix_coe
-		weight_vector_ith[markerwithgap[x]] = 0
-		weight_vector[x] = weight_vector_ith
-	if gap_strategies == False:
-		weight_vector = np.min(weight_vector, 0)
-	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
-	weight_vector[markerwithgap] = MMweight
+	weight_vector = compute_weight_vect_norm(markerwithgap, downsample, Data)
 	M_zero = np.copy(Data)
-	# N_nogap = np.copy(Data[:Data.shape[0]-AA1.shape[0]])
 	N_nogap = np.delete(Data, framewithgap, 0)
 	N_zero = np.copy(N_nogap)
 	N_zero[:,columnwithgap] = 0
-	
 	mean_N_nogap = np.mean(N_nogap, 0)
 	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
 
 	mean_N_zero = np.mean(N_zero, 0)
 	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
 	stdev_N_no_gaps = np.std(N_nogap, 0)
+
 	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
-
-
+	
 	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
 	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
 	
@@ -503,15 +537,18 @@ class Interpolation_T():
 
 
 class interpolation_weighted_T():
-	def __init__(self, reference_matrix, missing_matrix, norm):
-		self.A1 = np.copy(missing_matrix)
-		self.AN = np.copy(reference_matrix)
-		self.K = int(self.AN.shape[0] / missing_matrix.shape[0])
-		# self.fix_leng = 100
+	def __init__(self, reference_matrix, missing_matrix, norm, downsample, strategy_R2 = False, marker = None):
+		# self.A1 = np.copy(missing_matrix)
+		# self.AN = np.copy(reference_matrix)
+		# self.K = int(self.AN.shape[0] / missing_matrix.shape[0])
+		self.strategy_R2 = strategy_R2
+		self.marker = marker
+		# # self.fix_leng = 100
 		self.fix_leng = missing_matrix.shape[0]
-		self.AN0 = self.create_AN0()
-		self.compute_svd()
-		self.result_nonorm = self.interpolate_missing()
+		self.downsample = downsample
+		# self.AN0 = self.create_AN0()
+		# self.compute_svd()
+		# self.result_nonorm = self.interpolate_missing()
 		if norm:
 			self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
 			self.normed_matries, self.reconstruct_matries = self.normalization()
@@ -536,7 +573,7 @@ class interpolation_weighted_T():
 		return p_AN0
 
 	def normalization(self):
-		normed_matries, reconstruct_matries = compute_norm(self.combine_matrix)
+		normed_matries, reconstruct_matries = compute_norm(self.combine_matrix, self.downsample, self.strategy_R2, self.marker)
 		return normed_matries, reconstruct_matries
 
 
@@ -561,7 +598,6 @@ class interpolation_weighted_T():
 		p_AN0 = self.AN0
 		list_A0 = []
 		list_A = []
-
 		r = len(self.AN0)
 		l = r - self.fix_leng
 
@@ -578,7 +614,6 @@ class interpolation_weighted_T():
 		self.UN0 = np.copy(tmp_U0.T)
 
 		ksmall = max(setting_rank(tmp_Usigma), setting_rank(tmp_U0sigma))
-		
 		self.UN = self.UN[:, :ksmall]
 		self.UN0 = self.UN0[:, :ksmall]
 		self.list_Ti = []
@@ -599,7 +634,6 @@ class interpolation_weighted_T():
 			# self.list_Ti.append(tmpT)
 		
 		# compute weight
-	
 		list_left_matrix = []
 		for patch_number in range(self.K):
 			current_patch = np.matmul(list_A[patch_number], self.UN) - matmul_list(
@@ -608,7 +642,6 @@ class interpolation_weighted_T():
 				for clm in range(ksmall):
 					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
 					list_left_matrix.append(tmp)
-
 		left_matrix = np.vstack(list_left_matrix)
 
 		u, d, v = np.linalg.svd(left_matrix)
