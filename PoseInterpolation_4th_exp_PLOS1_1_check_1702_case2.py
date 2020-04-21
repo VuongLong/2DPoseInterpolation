@@ -11,7 +11,7 @@ import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data_Aniage_gap/9/9.txt"
+		link = "./test_data_Aniage_gap/5/1.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -87,58 +87,57 @@ def process_hub5(data = None):
 			patch_arr[0] = 1
 			A_N = A_N_source
 			A_N3 = A_N3_source
-			for sub_test in os.listdir(current_folder):
-				result_path = current_folder+'/'+sub_test
-				result_path = result_path[:-4]
-				#create_folder_result(result_path)
-				print(current_folder+'/'+sub_test)
+			number_test = 20
+			for sub_test in range(number_test):
+				result_path = current_folder+'/'+str(sub_test) + ".txt"
+				print(result_path)
 				# if os.path.isdir(current_folder+'/'+sub_test) :
-				if sub_test != "_DS_Store" and sub_test[-1] == 't':
-					tmpT = []
-					tmpF = []
-					tmpG = []
-					tmpV = []
-					# full_matrix = load_missing()
-					full_matrix = load_missing(current_folder+'/'+sub_test)
-					for x in range(number_patch):
-						if patch_arr[x] > 0:
-							# get data which corespond to starting frame of A1
-							A1 = np.copy(Tracking3D[test_reference[x][0]:test_reference[x][1]])
-							missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
-							A1zero = np.copy(A1)
-							A1zero[np.where(missing_matrix == 0)] = 0
-							# tmp = np.vstack((A_N3_source_added, A1))
-							# np.savetxt("data_ANIAGE.txt", tmp, fmt = "%.2f")
-							# stop
-							A1_star3 = interpolation_weighted_dang_v2(np.copy(A_N3_source_added), np.copy(A1zero))
-							tmpT.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17))
-							np.savetxt("A1_star3.txt", A1_star3, fmt = "%.3f")
-							np.savetxt("A1origin.txt", A1, fmt = "%.3f")
-							np.savetxt("A1zero.txt", A1zero, fmt = "%.3f")
+				tmpT = []
+				tmpF = []
+				tmpG = []
+				tmpV = []
+				# full_matrix = load_missing()
+				full_matrix = load_missing(result_path)
+				for x in range(number_patch):
+					if patch_arr[x] > 0:
+						# get data which corespond to starting frame of A1
+						A1 = np.copy(Tracking3D[test_reference[x][0]:test_reference[x][1]])
+						missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
+						A1zero = np.copy(A1)
+						A1zero[np.where(missing_matrix == 0)] = 0
+						# tmp = np.vstack((A_N3_source_added, A1))
+						# np.savetxt("data_ANIAGE.txt", tmp, fmt = "%.2f")
+						# stop
+						# np.savetxt("checkA1origin.txt", A1, fmt = "%.3f")
+						A1_star3 = interpolation_weighted_dang_v2(np.copy(A_N3_source_added), np.copy(A1zero))
+						value = np.around(calculate_mae_matrix(
+							A1[np.where(A1zero == 0)]- A1_star3[np.where(A1zero == 0)]), decimals = 17)
+						print(value)
+						tmpT.append(value)
+						# np.savetxt("A1_star3.txt", A1_star3, fmt = "%.3f")
+						# np.savetxt("A1zero.txt", A1zero, fmt = "%.3f")
 
-							# A1_star4 = PCA_PLOS1_F4(np.copy(A_N3_source_added), np.copy(A1zero))
-							# # A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
-							# tmpF.append(np.around(calculate_mae_matrix(
-							# 	A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
+						# A1_star4 = PCA_PLOS1_F4(np.copy(A_N3_source_added), np.copy(A1zero))
+						# # A1_star7 = PCA_PLOS1(np.copy(A1zero), np.copy(A1zero))
+						# tmpF.append(np.around(calculate_mae_matrix(
+						# 	A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
-						
-							A1_star5 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							tmpG.append(np.around(calculate_mae_matrix(
-								A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
+					
+						# A1_star5 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
+						# tmpG.append(np.around(calculate_mae_matrix(
+						# 	A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17))
 
-							# A1_star6 = interpolation_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
-							# tmpV.append(np.around(calculate_mae_matrix(
-							# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
-							# # save file for rendering
-							#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
-							#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
-							#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
+						# A1_star6 = interpolation_weighted_dang(np.copy(A_N3_source_added), np.copy(A1zero))
+						# tmpV.append(np.around(calculate_mae_matrix(
+						# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+						# # save file for rendering
+						#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
+						#np.savetxt(result_path + "/PCA.txt", A1_star7, fmt = "%.2f")
+						#np.savetxt(result_path + "/our_method.txt", A1_star8, fmt = "%.2f")
 				tmpA3.append(np.asarray(tmpT).sum())
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
 				tmpA6.append(np.asarray(tmpV).sum())
-				break
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
 			resultA5.append(np.asarray(tmpA5).mean())
