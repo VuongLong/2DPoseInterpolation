@@ -37,7 +37,7 @@ def generate_missing_joint_leng(n, m, frame_length, number_gap):
 
 
 def generate_missing_joint_gap(n, m, frame_length, number_gap):
-	frames = 70
+	frames = 30
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
 	np.random.shuffle(joints)
@@ -120,12 +120,12 @@ def process_leng_missing():
 						
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
-			# np.savetxt("./test_data_Aniage_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-			np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			np.savetxt("./test_data_Aniage_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			# np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
 	
-	# f = open("./test_data_Aniage_leng/info.txt", "w")
-	f = open("./test_data_CMU_leng/info.txt", "w")
+	f = open("./test_data_Aniage_leng/info.txt", "w")
+	# f = open("./test_data_CMU_leng/info.txt", "w")
 	f.write(str(datetime.now()))
 	f.close()
 	return 
@@ -194,11 +194,11 @@ def process_gap_missing():
 						sample.shape[0], sample.shape[1], lmiss, patch_arr[x])		
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 
-			# np.savetxt("./test_data_Aniage_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-			np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			np.savetxt("./test_data_Aniage_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			# np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 
-	# f = open("./test_data_Aniage_gap/info.txt", "w")
-	f = open("./test_data_CMU_gap/info.txt", "w")
+	f = open("./test_data_Aniage_gap/info.txt", "w")
+	# f = open("./test_data_CMU_gap/info.txt", "w")
 	f.write(str(datetime.now()))
 	f.close()		
 	return 
@@ -218,10 +218,10 @@ def remove_joint(data):
 
 if __name__ == '__main__':
 
-	# data_link = ["./data3D/fastsong7.txt"]
-	data_link = ["./data3D/135_02.txt"]
+	data_link = ["./data3D/fastsong7.txt"]
+	# data_link = ["./data3D/135_02.txt"]
 	Tracking3D, _  = read_tracking_data3D_v2(data_link[0])
-	# Tracking3D = remove_joint(Tracking3D)
+	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 	process_leng_missing()
 	process_gap_missing()

@@ -101,8 +101,9 @@ def read_tracking_data3D_without_RJ(data_dir, patch):
 	return Tracking3D, restore
 
 def setting_rank(eigen_vector):
-	minCumSV = 0.99
+	minCumSV = 0.98
 	current_sum = 0
+	sum_list = np.sum(eigen_vector)
 	for x in range(len(eigen_vector)):
 		current_sum += eigen_vector[x]
 		if current_sum > minCumSV * sum_list:

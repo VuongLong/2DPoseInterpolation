@@ -11,7 +11,7 @@ import os
 
 def load_missing(sub_link = None):
 	if sub_link == None:
-		link = "./test_data_Aniage_gap/5/1.txt"
+		link = "./test_data_Aniage_gap/5/2.txt"
 	else:
 		link = sub_link
 	matrix = []
@@ -103,6 +103,7 @@ def process_hub5(data = None):
 						# get data which corespond to starting frame of A1
 						A1 = np.copy(Tracking3D[test_reference[x][0]:test_reference[x][1]])
 						missing_matrix = full_matrix[test_reference[x][0]:test_reference[x][1]]
+						# np.savetxt("missing_matrix.txt", missing_matrix, fmt = "%.d")
 						A1zero = np.copy(A1)
 						A1zero[np.where(missing_matrix == 0)] = 0
 						# tmp = np.vstack((A_N3_source_added, A1))
@@ -138,11 +139,12 @@ def process_hub5(data = None):
 				tmpA4.append(np.asarray(tmpF).sum())
 				tmpA5.append(np.asarray(tmpG).sum())
 				tmpA6.append(np.asarray(tmpV).sum())
+				# break
 			resultA3.append(np.asarray(tmpA3).mean())
 			resultA4.append(np.asarray(tmpA4).mean())
 			resultA5.append(np.asarray(tmpA5).mean())
 			resultA6.append(np.asarray(tmpA6).mean())
-			break
+			# break
 	print(order_fol)
 	return [resultA3, resultA4, resultA5, resultA6]
 
@@ -178,12 +180,11 @@ if __name__ == '__main__':
 	# print("reference source:")
 	# print(source_AN.shape)
 	# print(source_AN3.shape)
-
-	data_link = "./data3D/fastsong7.txt"
-	# data_link = "./data3D/135_02.txt"
+	# data_link = "./data3D/fastsong7.txt"
+	data_link = "./data3D/135_02.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
-	Tracking3D = remove_joint(Tracking3D)
+	# Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
 	# result = process_hub5(data = [source_AN, source_AN3])
 	result = process_hub5()

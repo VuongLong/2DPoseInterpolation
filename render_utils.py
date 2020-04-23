@@ -5,7 +5,7 @@ import os
 import xlwt 
 from xlwt import Workbook
 import matplotlib.pyplot as plt
-import cv2
+# import cv2
 
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [0, 255, 255], \
 		  [85, 0, 255], [0, 255, 0], [255, 0, 170], [255, 0, 0], [0, 255, 255], \
