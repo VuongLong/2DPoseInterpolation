@@ -32,6 +32,27 @@ def interpolation_weighted_dang(source_data, test_data):
 	return result
 
 
+def interpolation_weighted_dang_v2(source_data, test_data):
+	interpolation = interpolation_weighted_gap_dang_v2(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
+
+def interpolation_weighted_dang_v3(source_data, test_data):
+	interpolation = interpolation_weighted_gap_dang_v3(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
+def interpolation_weighted_dang_v4(source_data, test_data):
+	interpolation = interpolation_weighted_gap_dang_v4(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
+
+def interpolation_weighted_dang_v5(source_data, test_data):
+	interpolation = interpolation_weighted_gap_dang_v5(source_data, test_data)
+	result = interpolation.result_norm
+	return result
 
 if __name__ == '__main__':
 	print("ok")

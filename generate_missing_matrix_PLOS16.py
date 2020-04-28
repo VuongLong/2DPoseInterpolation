@@ -9,9 +9,9 @@ import random
 from datetime import datetime
 
 def generate_missing_joint_gap(n, m, frame_length, number_gap):
-	# CMU: LSHO 9; LKNE: 28
+	# CMU: LSHO 9; LKNE: 28; LWA 14
 
-	# ANIAGE: LSHO 2; LKNE 10
+	# ANIAGE: LSHO 2; LKNE 10; LWA 4
 	frames = 70
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
@@ -19,7 +19,7 @@ def generate_missing_joint_gap(n, m, frame_length, number_gap):
 	while counter < number_gap:
 		counter+=1
 		# tmp = arg.cheat_array[counter-1]
-		missing_joint = 9
+		missing_joint = 14
 		start_missing_frame = random.randint(1, n-frames)
 		# print("start_missing_frame: ", start_missing_frame, "joint: ", missing_joint)
 		for frame in range(start_missing_frame, start_missing_frame+frames):
