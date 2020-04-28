@@ -295,183 +295,6 @@ class Interpolation16th_F():
 		return self.list_alpha
 
 
-def compute_norm(combine_matrix, downsample = False, gap_strategies = False):
-	AA = np.copy(combine_matrix)
-	weightScale = 200
-	MMweight = 0.02
-	[frames, columns] = AA.shape
-	columnindex = np.where(AA == 0)[1]
-	frameindex = np.where(AA == 0)[0]
-	columnwithgap = np.unique(columnindex)
-	markerwithgap = np.unique(columnwithgap // 3)
-	framewithgap = np.unique(frameindex)
-	Data_without_gap = np.delete(AA, columnwithgap, 1)
-	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
-	columnWithoutGap = Data_without_gap.shape[1]
-
-	x_index = [x for x in range(0, columnWithoutGap, 3)]
-	mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
-
-	y_index = [x for x in range(1, columnWithoutGap, 3)]
-	mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
-
-	z_index = [x for x in range(2, columnWithoutGap, 3)]
-	mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
-
-	joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
-	MeanMat = np.tile(joint_meanXYZ, AA.shape[1]//3)
-	Data = np.copy(AA - MeanMat)
-	Data[np.where(AA == 0)] = 0
-	
-	# calculate weight vector 
-	frame_range_start = 0
-	if downsample:
-		frame_range_start = max(frames-400-len( framewithgap), 0)
-
-	weight_matrix = np.zeros((frames, columns//3))
-	weight_matrix_coe = np.zeros((frames, columns//3))
-	weight_vector = np.zeros((len(markerwithgap), columns//3))
-	for x in range(len(markerwithgap)):
-		weight_matrix = np.zeros((frames, columns//3))
-		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frame_range_start, frames):
-			valid = True
-			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0 :
-				valid = False
-			if valid:
-				for j in range(columns//3):
-					if j != markerwithgap[x]:
-						point1 = get_point(Data, i, markerwithgap[x])
-						point2 = get_point(Data, i, j)
-						tmp = 0
-						if euclid_dist(point2, [0, 0, 0]) != 0:
-							weight_matrix[i][j] = euclid_dist(point2, point1)
-							weight_matrix_coe[i][j] = 1
-
-		sum_matrix = np.sum(weight_matrix, 0)
-		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
-		weight_vector_ith = sum_matrix / sum_matrix_coe
-		weight_vector_ith[markerwithgap[x]] = 0
-		weight_vector[x] = weight_vector_ith
-	if gap_strategies == False:
-		weight_vector = np.min(weight_vector, 0)
-	weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
-	weight_vector[markerwithgap] = MMweight
-	M_zero = np.copy(Data)
-	# N_nogap = np.copy(Data[:Data.shape[0]-AA1.shape[0]])
-	N_nogap = np.delete(Data, framewithgap, 0)
-	N_zero = np.copy(N_nogap)
-	N_zero[:,columnwithgap] = 0
-	
-	mean_N_nogap = np.mean(N_nogap, 0)
-	mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
-
-	mean_N_zero = np.mean(N_zero, 0)
-	mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
-	stdev_N_no_gaps = np.std(N_nogap, 0)
-	stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
-
-
-	m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
-	m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
-	
-	column_weight = np.ravel(np.ones((3,1)) * weight_vector, order='F')
-	column_weight = column_weight.reshape((1, column_weight.shape[0]))
-	m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
-	m33 = np.matmul( np.ones((N_nogap.shape[0], 1)), column_weight)
-	m4 = np.ones((N_nogap.shape[0],1))*mean_N_nogap
-	m5 = np.ones((N_nogap.shape[0],1))*stdev_N_no_gaps
-	m6 = np.ones((N_zero.shape[0],1))*mean_N_zero
-
-	M_zero = np.multiply(((M_zero-m1) / m2),m3)
-	N_nogap = np.multiply(((N_nogap-m4)/ m5),m33)
-	N_zero = np.multiply(((N_zero-m6) / m5),m33)
-	
-	m7 = np.ones((Data.shape[0],1))*mean_N_nogap
-	
-	return [M_zero, N_nogap, N_zero], [m7, stdev_N_no_gaps, column_weight, MeanMat]
-
-def compute_weight_vect_norm(markerwithgap, Data):
-	weightScale = 200
-	MMweight = 0.02
-	AA = np.copy(Data)
-	[frames, columns] = AA.shape
-	marker = markerwithgap[0]
-	frameindex = np.where(AA[:, marker*3+1] == 0)[0]
-	framewithgap = np.unique(frameindex)
-
-	weight_vector = np.zeros((len(markerwithgap), columns//3))
-	for x in range(len(markerwithgap)):
-		weight_matrix = np.zeros((frames, columns//3))
-		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frames):
-			valid = True
-			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0 :
-				valid = False
-			if valid:
-				for j in range(columns//3):
-					if j != markerwithgap[x]:
-						point1 = get_point(Data, i, markerwithgap[x])
-						point2 = get_point(Data, i, j)
-						if euclid_dist(point2, [0, 0, 0]) != 0:
-							weight_matrix[i][j] = euclid_dist(point2, point1)
-							weight_matrix_coe[i][j] = 1
-
-		sum_matrix = np.sum(weight_matrix, 0)
-		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
-		weight_vector_ith = sum_matrix / sum_matrix_coe
-		weight_vector_ith[markerwithgap[x]] = 0
-		weight_vector[x] = weight_vector_ith
-
-	weight_vector = np.min(weight_vector, 0)
-	return weight_vector
-
-def compute_weight_vect_norm_v2(markerwithgap, Data):
-	weightScale = 200
-	MMweight = 0.02
-	AA = np.copy(Data)
-	[frames, columns] = AA.shape
-	marker = markerwithgap[0]
-	frameindex = np.where(AA[:, marker*3+1] == 0)[0]
-	framewithgap = np.unique(frameindex)
-	weight_vector = np.zeros((len(markerwithgap), columns//3))
-	for x in range(len(markerwithgap)):
-		weight_matrix = np.zeros((frames, columns//3))
-		weight_matrix_coe = np.zeros((frames, columns//3))
-		for i in range(frames):
-			valid = True
-			if euclid_dist([0, 0, 0] , get_point(Data, i, markerwithgap[x])) == 0:
-				valid = False
-			if valid:
-				for j in range(columns//3):
-					if j != markerwithgap[x]:
-						point1 = get_point(Data, i, markerwithgap[x])
-						point2 = get_point(Data, i, j)						
-						weight_matrix[i][j] = euclid_dist(point2, point1)
-						weight_matrix_coe[i][j] = 1
-
-		sum_matrix = np.sum(weight_matrix, 0)
-		sum_matrix_coe = np.sum(weight_matrix_coe, 0)
-		weight_vector_ith = sum_matrix / sum_matrix_coe
-		weight_vector_ith[markerwithgap[x]] = 0
-		weight_vector[x] = weight_vector_ith
-
-	weight_vector = np.min(weight_vector, 0)
-	return weight_vector
-
-def check_vector_overlapping(vector_check):
-	if len(np.where(vector_check == 0)[0]) > 0:
-		return True
-	return False
-
-def get_list_frameidx_patch(K_patch, fix_leng, frame_start):
-	list_frameidx_patch = []
-	for patch_number in range(K_patch):
-		patch_start_frame = patch_number * fix_leng + frame_start
-		patch_end_frame = patch_start_frame + fix_leng
-		list_frameidx_patch.append([patch_start_frame, patch_end_frame])
-	return list_frameidx_patch
-
 class interpolation_gap_patch():
 	def __init__(self, reference_matrix, marker, missing_matrix_origin, list_frameidx_patch, full_test, full_test2):
 		weightScale = 200
@@ -660,6 +483,7 @@ class interpolation_gap_patch_v2():
 		# np.savetxt("checkN_nogap.txt", N_nogap, fmt = "%.2f")
 		# print(ksmall)
 		# stop
+		self.ksmall = ksmall
 		self.K = int(reference_matrix.shape[0] / missing_matrix_origin.shape[0])
 		for patch_number in range(self.K):
 			frame_start = list_frameidx_patch[patch_number][0]
@@ -672,6 +496,9 @@ class interpolation_gap_patch_v2():
 			X = np.linalg.lstsq(A0UN0, AUN, rcond = None)
 			T_matrix = np.copy(X[0])
 			# T_matrix = np.matmul(U_N_nogap.T, U_N_zero)
+			# np.savetxt("checkT" + str(patch_number) + "after.txt", T_matrix, fmt = "%.2f")
+			# print("enter")
+			# print(patch_number)
 			reconstructData = np.matmul(np.matmul(np.matmul(N_zero, U_N_zero), T_matrix), U_N_nogap.T)
 
 			# reverse normalization
@@ -710,6 +537,149 @@ class interpolation_gap_patch_v2():
 			resultA = np.zeros(full_test2.shape)
 			# resultA = np.copy(missing_matrix_origin)
 			resultA[:, marker*3: marker*3+3] = np.copy(reconstruct_Mzero[:, marker*3: marker*3+3])
+			# print(resultA[:, marker*3: marker*3+3])
+			# np.savetxt("checkresult"+ str(marker) +".txt", resultA[:, marker*3: marker*3+3], fmt = "%.2f")
+			# stop
+			# self.reconstruct = np.copy(resultA)
+			self.interpolate_A.append(resultA)
+
+def compute_error_patch(fullData, reconstructData, marker, missing_matrix_origin):
+	[xx, yy] = missing_matrix_origin.shape
+	data = fullData[-xx:]
+	compareData = reconstructData[-xx:]
+	missing_frame = np.where(missing_matrix_origin[:, marker*3] == 0)[0]
+	fullFrame = [x for x in range(xx) if x not in missing_frame]
+	result = np.sum(np.abs(data[fullFrame, marker*3: marker*3+3] - compareData[fullFrame, marker*3: marker*3+3]))
+	number_maker = xx - len(missing_frame)
+	return result / (number_maker * 3)
+
+class interpolation_gap_patch_v3():
+	def __init__(self, reference_matrix, marker, missing_matrix_origin, list_frameidx_patch, full_test, full_test2, full_data):
+		weightScale = 200
+		MMweight = 0.02
+		missing_frame = np.where(missing_matrix_origin[:, marker*3] == 0)[0]
+
+		weight_vector = compute_weight_vect_norm_v2([marker], full_data)
+		# print("return weight_vector")
+		# print(weight_vector)
+		# print("end")
+		weight_vector = np.exp(np.divide(-np.square(weight_vector),(2*np.square(weightScale))))
+		weight_vector[marker] = MMweight
+		for x in range(len(weight_vector)):
+			if math.isnan(weight_vector[x]) :
+				weight_vector[x] = 0
+		self.Predic = []
+		self.Predic_f = []
+		self.interpolate_A = []
+		self.list_error_patch = []
+		# Predic[i][j] means using Ti matrix to interpolate Aj
+		missing_frame_Mzero = np.where(full_test2[:, marker*3] == 0)[0]
+		list_frame = np.arange(full_test2.shape[0])
+		list_full_frame_Mzero= np.asarray([i for i in list_frame if i not in missing_frame_Mzero])
+		M_zero = np.copy(full_test2)
+		
+		N_nogap = np.copy(full_test2[list_full_frame_Mzero,:])
+		# print("debugggggg")
+		# print(N_nogap.shape)
+		# print("end/////////////////////////////////////////////")
+		N_zero = np.copy(N_nogap)
+		N_zero[:,marker*3: marker*3+3] = 0
+		mean_N_nogap = np.mean(N_nogap, 0)
+		mean_N_nogap = mean_N_nogap.reshape((1, mean_N_nogap.shape[0]))
+
+		mean_N_zero = np.mean(N_zero, 0)
+		mean_N_zero = mean_N_zero.reshape((1, mean_N_zero.shape[0]))
+		stdev_N_no_gaps = np.std(N_nogap, 0)
+		stdev_N_no_gaps[np.where(stdev_N_no_gaps == 0)] = 1
+
+
+		column_weight = np.ravel(np.ones((3,1)) * weight_vector, order='F')
+		column_weight = column_weight.reshape((1, column_weight.shape[0]))
+		m33 = np.matmul( np.ones((N_nogap.shape[0], 1)), column_weight)
+		m4 = np.ones((N_nogap.shape[0],1))*mean_N_nogap
+		m5 = np.ones((N_nogap.shape[0],1))*stdev_N_no_gaps
+		m6 = np.ones((N_zero.shape[0],1))*mean_N_zero
+		
+		m1 = np.matmul(np.ones((M_zero.shape[0],1)),mean_N_zero)
+		m2 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
+		m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+		M_zero = np.multiply(((M_zero-m1) / m2),m3)
+
+		N_nogap = np.multiply(((N_nogap-m4)/ m5),m33)
+		N_zero = np.multiply(((N_zero-m6) / m5),m33)
+
+		
+		# M_zero2 = np.copy(full_test2)
+		# m12 = np.matmul(np.ones((M_zero2.shape[0],1)),mean_N_zero)
+		# m22 = np.ones((M_zero2.shape[0],1))*stdev_N_no_gaps
+		# m32 = np.matmul( np.ones((M_zero2.shape[0], 1)), column_weight)
+		# M_zero2 = np.multiply(((M_zero2-m12) / m22),m32)
+		
+		_, Sigma_nogap , U_N_nogap_VH = np.linalg.svd(N_nogap/np.sqrt(N_nogap.shape[0]-1), full_matrices = False)
+		U_N_nogap = U_N_nogap_VH.T
+		_, Sigma_zero , U_N_zero_VH = np.linalg.svd(N_zero/np.sqrt(N_zero.shape[0]-1), full_matrices = False)
+		U_N_zero = U_N_zero_VH.T
+		ksmall = max(setting_rank(Sigma_zero), setting_rank(Sigma_nogap))
+		U_N_nogap = U_N_nogap[:, :ksmall]
+		U_N_zero = U_N_zero[:, :ksmall]
+		# np.savetxt("checkN_zero.txt", N_zero, fmt = "%.2f")
+		# np.savetxt("checkN_nogap.txt", N_nogap, fmt = "%.2f")
+		# print(ksmall)
+		# stop
+		self.ksmall = ksmall
+		self.K = int(reference_matrix.shape[0] / missing_matrix_origin.shape[0])
+		for patch_number in range(self.K):
+			frame_start = list_frameidx_patch[patch_number][0]
+			frame_end = list_frameidx_patch[patch_number][1]
+			A0 = np.copy(N_zero[frame_start: frame_end])
+			A = np.copy(N_nogap[frame_start: frame_end])
+			AUN = np.matmul(A, U_N_nogap)
+			A0UN0 = np.matmul(A0, U_N_zero)
+			
+			X = np.linalg.lstsq(A0UN0, AUN, rcond = None)
+			T_matrix = np.copy(X[0])
+			# T_matrix = np.matmul(U_N_nogap.T, U_N_zero)
+			# np.savetxt("checkT" + str(patch_number) + ".txt", T_matrix, fmt = "%.2f")
+			reconstructData = np.matmul(np.matmul(np.matmul(N_zero, U_N_zero), T_matrix), U_N_nogap.T)
+
+			# reverse normalization
+			m7 = np.ones((reconstructData.shape[0],1))*mean_N_nogap
+			m8 = np.ones((reconstructData.shape[0],1))*stdev_N_no_gaps
+			m3 = np.matmul( np.ones((reconstructData.shape[0], 1)), column_weight)
+			reconstructData = m7 + (np.multiply(reconstructData, m8) / m3)
+
+			list_prec = []
+			list_prec_f = []
+			for i in range(self.K):
+				Fs = list_frameidx_patch[i][0]
+				Fe = list_frameidx_patch[i][1]
+				Ai = np.copy(reconstructData[Fs:Fe])
+				resultAi = np.zeros(missing_matrix_origin.shape)
+				resultAi[missing_frame, marker*3: marker*3+3] = Ai[missing_frame, marker*3: marker*3+3]
+				list_prec.append(resultAi)
+				list_prec_f.append(Ai)
+
+			self.Predic.append(list_prec)
+			self.Predic_f.append(list_prec_f)
+
+			reconstruct_Mzero = np.matmul(np.matmul(np.matmul(M_zero, U_N_zero), T_matrix), U_N_nogap.T)
+			# reconstruct_Mzero2 = np.matmul(np.matmul(np.matmul(M_zero2, U_N_zero), T_matrix), U_N_nogap.T)
+			# print(np.sum(np.abs(reconstruct_Mzero2)) - np.sum(np.abs(reconstruct_Mzero)))
+			# stop
+			m7 = np.ones((M_zero.shape[0],1))*mean_N_nogap
+			m8 = np.ones((M_zero.shape[0],1))*stdev_N_no_gaps
+			m3 = np.matmul( np.ones((M_zero.shape[0], 1)), column_weight)
+			reconstruct_Mzero = m7 + (np.multiply(reconstruct_Mzero, m8) / m3)
+			# reconstruct_Mzero2 = m7 + (np.multiply(reconstruct_Mzero2, m8) / m3)
+			# self.reconstruct = reconstruct_Mzero2
+
+			# number_missing = len(missing_frame)
+			# predicA = np.copy(reconstruct_Mzero[-number_missing:])
+			resultA = np.zeros(full_test2.shape)
+			# resultA = np.copy(missing_matrix_origin)
+			resultA[:, marker*3: marker*3+3] = np.copy(reconstruct_Mzero[:, marker*3: marker*3+3])
+			error = compute_error_patch(full_test2, resultA, marker, missing_matrix_origin)
+			self.list_error_patch.append(error)
 			# print(resultA[:, marker*3: marker*3+3])
 			# np.savetxt("checkresult"+ str(marker) +".txt", resultA[:, marker*3: marker*3+3], fmt = "%.2f")
 			# stop
@@ -1972,12 +1942,12 @@ class interpolation_weighted_gap_dang_v2():
 		# print("self.list_beta sum: ", np.sum(self.list_beta))
 		# counter = 0
 		list_matrix = []
-		for j in range(self.K):
+		for j in range(1):
 			for g in range(len(self.markerwithgap)):
 				list_matrix.append(self.F_matrix[g].interpolate_A[0])
-				Ajg = self.F_matrix[g].interpolate_A[j]
-				tmp =  self.list_beta[j] * self.list_alpha[g] * np.copy(Ajg)
-				list_matrix.append(tmp)
+				# Ajg = self.F_matrix[g].interpolate_A[j]
+				# tmp =  self.list_beta[j] * self.list_alpha[g] * np.copy(Ajg)
+				# list_matrix.append(tmp)
 		# 		# counter += self.list_alpha[g] * self.list_beta[j]
 		# 		# np.savetxt("checkresult"+ str(g) +".txt", Ajg, fmt = "%.2f")
 		result = summatrix_list(list_matrix)
@@ -1987,6 +1957,694 @@ class interpolation_weighted_gap_dang_v2():
 		# print("counter: ", counter)
 		# result = self.F_matrix[0].reconstruct + self.MeanMat
 		# result = result[-self.missing_matrix.shape[0]:]
+
+		final_result = np.copy(self.original_missing)
+		final_result[np.where(self.original_missing == 0)] = result[np.where(self.original_missing == 0)]
+		return final_result
+
+
+
+class interpolation_weighted_gap_dang_v3():
+	def __init__(self, reference_matrix, missing_matrix):
+		# this function is integrated with norm so no norm option as previous approaches
+		self.missing_matrix = missing_matrix
+		self.reference_matrix = reference_matrix
+		self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
+		self.original_combine = np.copy(self.combine_matrix)
+		self.fix_leng = missing_matrix.shape[0]
+		self.original_refer = reference_matrix
+		self.original_missing = missing_matrix
+		self.F_matrix = self.prepare()
+		self.missing_matrix = self.norm_Data[-self.missing_matrix.shape[0]:]
+		self.reference_matrix = self.norm_Data[:-self.missing_matrix.shape[0]]
+		# F_matrix compute multiplication of A0j U0N Tj U(N) regards to missing only gap g
+		# F_matrix contains matries having same size with A(j) original
+		# Fgij = value of missing gap g and using patch i to interpolate patch j
+		self.compute_variant()
+		self.result_norm = self.interpolate_missing()
+
+	def prepare(self):
+		list_F_matrix = []
+		DistalThreshold = 0.5
+		test_data = np.copy(self.missing_matrix)
+		source_data = np.copy(self.reference_matrix)
+
+		AA = np.copy(self.combine_matrix)
+		columnindex = np.where(AA == 0)[1]
+		columnwithgap = np.unique(columnindex)
+		markerwithgap = np.unique(columnwithgap // 3)
+		# print(markerwithgap)
+		self.markerwithgap = markerwithgap
+		missing_frame_testdata = np.unique(np.where(test_data == 0)[0])
+		list_frame = np.arange(test_data.shape[0])
+		full_frame_testdata = np.asarray([i for i in list_frame if i not in missing_frame_testdata])
+		self.full_frame_testdata = full_frame_testdata
+		
+		[frames, columns] = AA.shape
+		Data_without_gap = np.delete(np.copy(AA), columnwithgap, 1)
+		mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+		columnWithoutGap = Data_without_gap.shape[1]
+
+		x_index = [x for x in range(0, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+		y_index = [x for x in range(1, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+		z_index = [x for x in range(2, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+		joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+		self.MeanMat = np.tile(joint_meanXYZ, AA.shape[1]//3)
+		# np.savetxt("checkMeanmat.txt", self.MeanMat[-self.missing_matrix.shape[0]:], fmt = "%.2f")
+		AA = AA - self.MeanMat
+		AA[np.where(self.combine_matrix == 0)] = 0
+		self.norm_Data = np.copy(AA)
+		#  /////////////////////////////////////////////////////////////////////////
+		# note recontruct Meanmat
+		self.K = self.reference_matrix.shape[0] + len(full_frame_testdata)
+		self.K = int(self.K / self.fix_leng)
+		self.list_mark_matrixQ = []
+		self.ksmall = 0
+		for marker in markerwithgap:
+			tmp = np.zeros(self.missing_matrix.shape)
+			missing_frame_marker = np.where(self.missing_matrix[:, marker*3] == 0)
+			tmp[missing_frame_marker, marker*3 : marker*3+3] = 1
+			self.list_mark_matrixQ.append(np.copy(tmp))
+
+		self.Q_matrix = np.zeros(self.missing_matrix.shape)
+		self.Q_matrix[np.where(self.missing_matrix == 0)] = 1
+
+		list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, len(full_frame_testdata))
+		self.list_frameidx_patch = list_frameidx_patch
+		counter_marker = 0
+		for marker in markerwithgap:
+			# print(marker)
+			missing_frame = np.where(test_data[:, marker*3] == 0)
+			# print(missing_frame)
+			EuclDist2Marker = compute_weight_vect_norm([marker], AA)
+			# print(EuclDist2Marker)
+			thresh = np.mean(EuclDist2Marker) * DistalThreshold
+			# print(thresh)
+			# stop
+			Data_remove_joint = np.copy(AA)
+			for sub_marker in range(len(EuclDist2Marker)):
+				if (EuclDist2Marker[sub_marker] > thresh) and (sub_marker in markerwithgap):
+					Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			Data_remove_joint[:, marker*3:marker*3+3] = np.copy(AA[:, marker*3:marker*3+3])
+			frames_missing_marker = np.where(Data_remove_joint[:, marker*3] == 0)[0]
+			for sub_marker in markerwithgap:
+				if sub_marker != marker:
+					if check_vector_overlapping(Data_remove_joint[frames_missing_marker, sub_marker*3]):
+						# print(marker, " affect ", sub_marker)
+						Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			
+			source_data_renew = Data_remove_joint[: len(self.reference_matrix)]
+			full_frame_renew = full_frame_testdata + self.reference_matrix.shape[0]
+			full_joint_testingData = Data_remove_joint[full_frame_renew, :]
+			only_missing_testingData = Data_remove_joint[frames_missing_marker, :]
+			Data_renew =  np.vstack([source_data_renew, full_joint_testingData])
+			full_testData = np.vstack([Data_renew, only_missing_testingData])
+			# np.savetxt("checkinput.txt", Data_remove_joint, fmt = "%.2f")
+			# stop
+			gap_interpolation = interpolation_gap_patch_v2(Data_renew, marker, self.missing_matrix, list_frameidx_patch, full_testData, Data_remove_joint, np.copy(AA))
+			self.ksmall = max(self.ksmall, gap_interpolation.ksmall)
+			list_F_matrix.append(gap_interpolation)
+			counter_marker += 1
+		return list_F_matrix
+
+	def compute_variant(self):
+		full_joint_testingData = self.missing_matrix[self.full_frame_testdata, :]
+		Data_renew =  np.vstack([self.reference_matrix, full_joint_testingData])
+		# compute weight
+	
+		list_left_matrix = []
+		for patch_number in range(self.K):
+			list_matrix = []
+			for g in range(len(self.markerwithgap)):
+				list_matrix.append(self.F_matrix[g].Predic[patch_number][patch_number])
+			prec_matrix = summatrix_list(list_matrix)
+			Aj =  Data_renew[self.list_frameidx_patch[patch_number][0]: self.list_frameidx_patch[patch_number][1]]
+			current_patch = np.copy(Aj * self.Q_matrix) - prec_matrix
+			for column in range(self.ksmall):
+				for clm in range(self.ksmall):
+					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
+					list_left_matrix.append(tmp)
+
+
+		left_matrix = np.vstack(list_left_matrix)
+		u, d, v = np.linalg.svd(left_matrix)
+		v = v.T
+		weight_list = v[:, -1]
+		if weight_list[-1] == 1:
+			u, d, v = np.linalg.svd(np.matmul(left_matrix.T, left_matrix))
+			# u, d, v = np.linalg.svd(left_matrix)
+			v = v.T
+			weight_list = v[:, -1]
+		self.W = np.diag(weight_list)
+		# compute alpha
+		list_Qjk = []
+		for j in range(self.K):
+			for h in range(self.K) :
+				list_matrix = []
+				for g in range(len(self.markerwithgap)):
+					list_matrix.append(self.F_matrix[g].Predic[h][j])
+				A0U0TUN = summatrix_list(list_matrix)
+				Aj =  Data_renew[self.list_frameidx_patch[j][0]: self.list_frameidx_patch[j][1]]
+				tmpQ = matmul_list([A0U0TUN.T, self.W, (Aj * self.Q_matrix)])
+				list_Qjk.append(tmpQ)
+		right_form = summatrix_list(list_Qjk)
+		xx, yy = right_form.shape
+		right_form = right_form.reshape(xx*yy, 1)
+		
+
+		list_Pij_patch = []
+		for patch_number in range(self.K):
+			list_tmp = []
+			for j in range(self.K):
+				for h in range(self.K):
+					list_matrix = []
+					for g in range(len(self.markerwithgap)):
+						list_matrix.append(self.F_matrix[g].Predic[h][j])
+					Ai_left = summatrix_list(list_matrix)
+
+					list_matrix = []
+					for g in range(len(self.markerwithgap)):
+						list_matrix.append(self.F_matrix[g].Predic[patch_number][j])
+					Ai_right = summatrix_list(list_matrix)
+
+					tmpP = matmul_list([Ai_left.T, self.W, Ai_right])
+					list_tmp.append(tmpP)
+			tmp = summatrix_list(list_tmp)
+			xx, yy = tmp.shape
+			list_Pij_patch.append(tmp.reshape(xx*yy, 1))
+		left_form = np.hstack([ x for x in list_Pij_patch])
+		list_zero = []
+		for i in range(left_form.shape[0]):
+			check = True
+			for j in range(left_form.shape[1]):
+				if left_form[i][j] >= 0.00001: 
+					check = False
+					break
+			if check: list_zero.append(i)
+		print(len(list_zero))
+		arr = np.arange(self.K*3)
+		np.random.shuffle(arr)
+		left_form = np.delete(left_form, list_zero, 0)
+		right_form = np.delete(right_form, list_zero, 0)
+		if left_form.shape[0] >= self.K * 3:
+			left_form = left_form[arr]
+			right_form = right_form[arr]
+		# self.list_alpha = np.linalg.lstsq(left_form, right_form, rcond = None)[0]
+		self.list_alpha = np.linalg.lstsq(np.matmul(left_form.T, left_form), np.matmul(left_form.T, right_form), rcond = None)[0]
+		if np.sum(self.list_alpha) <= 0.00001:
+			self.list_alpha = [1.0 / self.K] * self.K
+		# self.list_alpha[0] += self.list_alpha[1]
+		# self.list_alpha[1] = 0
+		print(self.list_alpha)
+		return self.list_alpha
+
+
+	def interpolate_missing(self):
+		list_matrix = []
+		for j in range(self.K):
+			predictAj = []
+			for g in range(len(self.markerwithgap)):
+				# list_matrix.append(self.F_matrix[g].interpolate_A[0])
+				predictAj.append(self.F_matrix[g].interpolate_A[j])
+			tmp = self.list_alpha[j] * summatrix_list(predictAj)
+			list_matrix.append(tmp)
+		result = summatrix_list(list_matrix)
+		result = result[-self.missing_matrix.shape[0]:] + self.MeanMat[-self.missing_matrix.shape[0]:]
+
+		final_result = np.copy(self.original_missing)
+		final_result[np.where(self.original_missing == 0)] = result[np.where(self.original_missing == 0)]
+		return final_result
+
+
+
+class interpolation_weighted_gap_dang_v4():
+	def __init__(self, reference_matrix, missing_matrix):
+		self.fix_leng = missing_matrix.shape[0]
+		self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
+		self.normed_matries, self.reconstruct_matries = self.normalization()
+		self.A1 = np.copy(self.normed_matries[0])
+		self.AN = np.copy(self.normed_matries[1])
+		self.AN0 = np.copy(self.normed_matries[2])
+		self.K = int(self.AN.shape[0] / self.fix_leng)
+		self.compute_svd()
+		self.missing_matrix = missing_matrix
+		self.reference_matrix = reference_matrix
+		self.original_combine = np.copy(self.combine_matrix)
+		self.original_refer = reference_matrix
+		self.original_missing = missing_matrix
+		self.F_matrix = self.prepare()
+		self.missing_matrix = self.norm_Data[-self.missing_matrix.shape[0]:]
+		self.reference_matrix = self.norm_Data[:-self.missing_matrix.shape[0]]
+		# F_matrix compute multiplication of A0j U0N Tj U(N) regards to missing only gap g
+		# F_matrix contains matries having same size with A(j) original
+		# Fgij = value of missing gap g and using patch i to interpolate patch j
+		self.result_norm = self.interpolate_missing()
+
+	def prepare(self):
+		list_F_matrix = []
+		DistalThreshold = 0.5
+		test_data = np.copy(self.missing_matrix)
+		source_data = np.copy(self.reference_matrix)
+
+		AA = np.copy(self.combine_matrix)
+		columnindex = np.where(AA == 0)[1]
+		columnwithgap = np.unique(columnindex)
+		markerwithgap = np.unique(columnwithgap // 3)
+		# print(markerwithgap)
+		self.markerwithgap = markerwithgap
+		missing_frame_testdata = np.unique(np.where(test_data == 0)[0])
+		list_frame = np.arange(test_data.shape[0])
+		full_frame_testdata = np.asarray([i for i in list_frame if i not in missing_frame_testdata])
+		self.full_frame_testdata = full_frame_testdata
+		
+		[frames, columns] = AA.shape
+		Data_without_gap = np.delete(np.copy(AA), columnwithgap, 1)
+		mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+		columnWithoutGap = Data_without_gap.shape[1]
+
+		x_index = [x for x in range(0, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+		y_index = [x for x in range(1, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+		z_index = [x for x in range(2, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+		joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+		self.MeanMat = np.tile(joint_meanXYZ, AA.shape[1]//3)
+		# np.savetxt("checkMeanmat.txt", self.MeanMat[-self.missing_matrix.shape[0]:], fmt = "%.2f")
+		AA = AA - self.MeanMat
+		AA[np.where(self.combine_matrix == 0)] = 0
+		self.norm_Data = np.copy(AA)
+		#  /////////////////////////////////////////////////////////////////////////
+		# note recontruct Meanmat
+		self.K = self.reference_matrix.shape[0] + len(full_frame_testdata)
+		self.K = int(self.K / self.fix_leng)
+		self.list_mark_matrixQ = []
+		for marker in markerwithgap:
+			tmp = np.zeros(self.missing_matrix.shape)
+			missing_frame_marker = np.where(self.missing_matrix[:, marker*3] == 0)
+			tmp[missing_frame_marker, marker*3 : marker*3+3] = 1
+			self.list_mark_matrixQ.append(np.copy(tmp))
+
+		self.Q_matrix = np.zeros(self.missing_matrix.shape)
+		self.Q_matrix[np.where(self.missing_matrix == 0)] = 1
+
+		list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, len(full_frame_testdata))
+		self.list_frameidx_patch = list_frameidx_patch
+		counter_marker = 0
+		for marker in markerwithgap:
+			# print(marker)
+			missing_frame = np.where(test_data[:, marker*3] == 0)
+			# print(missing_frame)
+			EuclDist2Marker = compute_weight_vect_norm([marker], AA)
+			# print(EuclDist2Marker)
+			thresh = np.mean(EuclDist2Marker) * DistalThreshold
+			# print(thresh)
+			# stop
+			Data_remove_joint = np.copy(AA)
+			for sub_marker in range(len(EuclDist2Marker)):
+				if (EuclDist2Marker[sub_marker] > thresh) and (sub_marker in markerwithgap):
+					Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			Data_remove_joint[:, marker*3:marker*3+3] = np.copy(AA[:, marker*3:marker*3+3])
+			frames_missing_marker = np.where(Data_remove_joint[:, marker*3] == 0)[0]
+			for sub_marker in markerwithgap:
+				if sub_marker != marker:
+					if check_vector_overlapping(Data_remove_joint[frames_missing_marker, sub_marker*3]):
+						# print(marker, " affect ", sub_marker)
+						Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			
+			source_data_renew = Data_remove_joint[: len(self.reference_matrix)]
+			full_frame_renew = full_frame_testdata + self.reference_matrix.shape[0]
+			full_joint_testingData = Data_remove_joint[full_frame_renew, :]
+			only_missing_testingData = Data_remove_joint[frames_missing_marker, :]
+			Data_renew =  np.vstack([source_data_renew, full_joint_testingData])
+			full_testData = np.vstack([Data_renew, only_missing_testingData])
+			# np.savetxt("checkinput.txt", Data_remove_joint, fmt = "%.2f")
+			# stop
+			gap_interpolation = interpolation_gap_patch_v2(Data_renew, marker, self.missing_matrix, list_frameidx_patch, full_testData, Data_remove_joint, np.copy(AA))
+			list_F_matrix.append(gap_interpolation)
+			counter_marker += 1
+		return list_F_matrix
+
+	def normalization(self):
+		normed_matries, reconstruct_matries = compute_norm(self.combine_matrix)
+		return normed_matries, reconstruct_matries
+
+	def compute_svd(self):
+		p_AN = self.AN
+		p_AN0 = self.AN0
+		list_A0 = []
+		list_A = []
+
+		r = len(self.AN0)
+		l = r - self.fix_leng
+
+		while l >= 0:
+			list_A.append(np.copy(p_AN[l:r]))
+			list_A0.append(np.copy(p_AN0[l:r]))
+			l -= self.fix_leng
+			r -= self.fix_leng
+
+		_, tmp_Usigma, tmp_U = np.linalg.svd(p_AN/np.sqrt(p_AN.shape[0]-1), full_matrices = False)
+		self.UN = np.copy(tmp_U.T)
+
+		_, tmp_U0sigma, tmp_U0 = np.linalg.svd(p_AN0/np.sqrt(p_AN0.shape[0]-1), full_matrices = False)
+		self.UN0 = np.copy(tmp_U0.T)
+
+		ksmall = max(setting_rank(tmp_Usigma), setting_rank(tmp_U0sigma))
+		
+		self.UN = self.UN[:, :ksmall]
+		self.UN0 = self.UN0[:, :ksmall]
+		self.list_Ti = []
+
+		for patch_number in range(self.K):
+			AiUN = np.matmul(list_A[patch_number], self.UN)
+			Ai0UN0 = np.matmul(list_A0[patch_number], self.UN0)
+			
+			X = np.linalg.lstsq(Ai0UN0, AiUN, rcond = None)
+			self.list_Ti.append(np.copy(X[0]))
+
+		list_left_matrix = []
+		for patch_number in range(self.K):
+			current_patch = np.matmul(list_A[patch_number], self.UN) - matmul_list(
+				[list_A0[patch_number], self.UN0, self.list_Ti[patch_number]])
+			for column in range(ksmall):
+				for clm in range(ksmall):
+					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
+					list_left_matrix.append(tmp)
+
+		left_matrix = np.vstack(list_left_matrix)
+
+		u, d, v = np.linalg.svd(left_matrix)
+		v = v.T
+		weight_list = v[:, -1]
+		self.W = np.diag(weight_list)
+		# compute alpha
+			
+		list_Qjk = []
+		for j in range(self.K):
+			for h in range(self.K) :
+				tmpQ = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+					self.W, list_A[j], self.UN])
+				list_Qjk.append(tmpQ)
+		right_form = summatrix_list(list_Qjk)
+		xx, yy = right_form.shape
+		right_form = right_form.reshape(xx*yy, 1)
+		list_Pij_patch = []
+		for patch_number in range(self.K):
+			list_tmp = []
+			for j in range(self.K):
+				for h in range(self.K):
+					tmpP = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+						self.W, list_A0[j], self.UN0, self.list_Ti[patch_number]])
+					list_tmp.append(tmpP)
+			tmp = summatrix_list(list_tmp)
+			xx, yy = tmp.shape
+			list_Pij_patch.append(tmp.reshape(xx*yy, 1))
+
+		left_form = np.hstack([ x for x in list_Pij_patch])
+		self.list_alpha = np.linalg.lstsq(left_form, right_form, rcond = None)[0]
+		# self.list_alpha = np.linalg.lstsq(np.matmul(left_form.T, left_form), np.matmul(left_form.T, right_form), rcond = None)[0]
+		print(self.list_alpha)
+		return self.list_alpha
+
+
+	def interpolate_missing(self):
+		list_matrix = []
+		for j in range(self.K):
+			predictAj = []
+			for g in range(len(self.markerwithgap)):
+				# list_matrix.append(self.F_matrix[g].interpolate_A[0])
+				predictAj.append(self.F_matrix[g].interpolate_A[j])
+			tmp = self.list_alpha[j] * summatrix_list(predictAj)
+			list_matrix.append(tmp)
+		result = summatrix_list(list_matrix)
+		result = result[-self.missing_matrix.shape[0]:] + self.MeanMat[-self.missing_matrix.shape[0]:]
+
+		final_result = np.copy(self.original_missing)
+		final_result[np.where(self.original_missing == 0)] = result[np.where(self.original_missing == 0)]
+		return final_result
+
+
+class interpolation_weighted_gap_dang_v5():
+	def __init__(self, reference_matrix, missing_matrix):
+		self.fix_leng = missing_matrix.shape[0]
+		self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
+		self.missing_matrix = missing_matrix
+		self.reference_matrix = np.copy(reference_matrix)
+		self.original_missing = missing_matrix
+		self.mean_error = -1
+		while True:
+			current_mean_change = False
+			current_number_patch = self.reference_matrix.shape[0] // missing_matrix.shape[0]
+			self.F_matrix = self.prepare(remove_patches = True, current_mean = self.mean_error)
+			self.list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, 0)
+			if (self.mean_error > 6):
+				tmp = np.mean(np.asarray(self.list_error)) + 0.0001
+				if tmp > 6:
+					self.mean_error =  tmp
+					current_mean_change = True
+			if (len(self.list_patches) == current_number_patch) and (current_mean_change == False):
+				break
+			if len(self.list_patches) == 0:
+				self.list_patches = [x for x in range(reference_matrix.shape[0] // missing_matrix.shape[0])]
+				self.reference_matrix = np.copy(reference_matrix)
+				self.combine_matrix = np.vstack((np.copy(self.reference_matrix), np.copy(missing_matrix)))
+				break	
+			list_newData = []
+			for i in self.list_patches:
+				[l, r] = self.list_frameidx_patch[i]
+				list_newData.append(self.combine_matrix[l:r])
+			self.reference_matrix = np.vstack(list_newData)
+			self.combine_matrix = np.vstack((np.copy(self.reference_matrix), np.copy(missing_matrix)))
+
+		self.normed_matries, self.reconstruct_matries = self.normalization()
+		self.A1 = np.copy(self.normed_matries[0])
+		self.AN = np.copy(self.normed_matries[1])
+		self.AN0 = np.copy(self.normed_matries[2])
+		self.K = int(self.AN.shape[0] / self.fix_leng)
+		self.compute_svd()
+		self.F_matrix = self.prepare()
+
+		self.result_norm = self.interpolate_missing()
+
+	def prepare(self, remove_patches = False, current_mean = -1):
+		list_F_matrix = []
+		DistalThreshold = 0.5
+		test_data = np.copy(self.missing_matrix)
+		source_data = np.copy(self.reference_matrix)
+
+		AA = np.copy(self.combine_matrix)
+		columnindex = np.where(AA == 0)[1]
+		columnwithgap = np.unique(columnindex)
+		markerwithgap = np.unique(columnwithgap // 3)
+		# print(markerwithgap)
+		self.markerwithgap = markerwithgap
+		missing_frame_testdata = np.unique(np.where(test_data == 0)[0])
+		list_frame = np.arange(test_data.shape[0])
+		full_frame_testdata = np.asarray([i for i in list_frame if i not in missing_frame_testdata])
+		self.full_frame_testdata = full_frame_testdata
+		
+		[frames, columns] = AA.shape
+		Data_without_gap = np.delete(np.copy(AA), columnwithgap, 1)
+		mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)
+		columnWithoutGap = Data_without_gap.shape[1]
+
+		x_index = [x for x in range(0, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecX = np.mean(Data_without_gap[:,x_index], 1).reshape(frames, 1)
+
+		y_index = [x for x in range(1, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecY = np.mean(Data_without_gap[:,y_index], 1).reshape(frames, 1)
+
+		z_index = [x for x in range(2, columnWithoutGap, 3)]
+		mean_data_withoutgap_vecZ = np.mean(Data_without_gap[:,z_index], 1).reshape(frames, 1)
+
+		joint_meanXYZ = np.hstack((mean_data_withoutgap_vecX, mean_data_withoutgap_vecY, mean_data_withoutgap_vecZ))
+		self.MeanMat = np.tile(joint_meanXYZ, AA.shape[1]//3)
+		# np.savetxt("checkMeanmat.txt", self.MeanMat[-self.missing_matrix.shape[0]:], fmt = "%.2f")
+		AA = AA - self.MeanMat
+		AA[np.where(self.combine_matrix == 0)] = 0
+		self.norm_Data = np.copy(AA)
+		#  /////////////////////////////////////////////////////////////////////////
+		# note recontruct Meanmat
+		self.K = self.reference_matrix.shape[0] + len(full_frame_testdata)
+		self.K = int(self.K / self.fix_leng)
+		self.list_patches = [x for x in range(self.K)]
+		self.list_mark_matrixQ = []
+		for marker in markerwithgap:
+			tmp = np.zeros(self.missing_matrix.shape)
+			missing_frame_marker = np.where(self.missing_matrix[:, marker*3] == 0)
+			tmp[missing_frame_marker, marker*3 : marker*3+3] = 1
+			self.list_mark_matrixQ.append(np.copy(tmp))
+
+		self.Q_matrix = np.zeros(self.missing_matrix.shape)
+		self.Q_matrix[np.where(self.missing_matrix == 0)] = 1
+
+		list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, len(full_frame_testdata))
+		self.list_frameidx_patch = list_frameidx_patch
+		counter_marker = 0
+		for marker in markerwithgap:
+			# print(marker)
+			missing_frame = np.where(test_data[:, marker*3] == 0)
+			# print(missing_frame)
+			EuclDist2Marker = compute_weight_vect_norm([marker], AA)
+			# print(EuclDist2Marker)
+			thresh = np.mean(EuclDist2Marker) * DistalThreshold
+			# print(thresh)
+			# stop
+			Data_remove_joint = np.copy(AA)
+			for sub_marker in range(len(EuclDist2Marker)):
+				if (EuclDist2Marker[sub_marker] > thresh) and (sub_marker in markerwithgap):
+					Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			Data_remove_joint[:, marker*3:marker*3+3] = np.copy(AA[:, marker*3:marker*3+3])
+			frames_missing_marker = np.where(Data_remove_joint[:, marker*3] == 0)[0]
+			for sub_marker in markerwithgap:
+				if sub_marker != marker:
+					if check_vector_overlapping(Data_remove_joint[frames_missing_marker, sub_marker*3]):
+						# print(marker, " affect ", sub_marker)
+						Data_remove_joint[:,sub_marker*3:sub_marker*3+3] = 0
+			
+			source_data_renew = Data_remove_joint[: len(self.reference_matrix)]
+			full_frame_renew = full_frame_testdata + self.reference_matrix.shape[0]
+			full_joint_testingData = Data_remove_joint[full_frame_renew, :]
+			only_missing_testingData = Data_remove_joint[frames_missing_marker, :]
+			Data_renew =  np.vstack([source_data_renew, full_joint_testingData])
+			full_testData = np.vstack([Data_renew, only_missing_testingData])
+			# np.savetxt("checkinput.txt", Data_remove_joint, fmt = "%.2f")
+			# stop
+			if remove_patches:
+				gap_interpolation = interpolation_gap_patch_v3(Data_renew, marker, self.missing_matrix, list_frameidx_patch, full_testData, Data_remove_joint, np.copy(AA))
+			else:
+				gap_interpolation = interpolation_gap_patch_v2(Data_renew, marker, self.missing_matrix, list_frameidx_patch, full_testData, Data_remove_joint, np.copy(AA))
+			list_F_matrix.append(gap_interpolation)
+			counter_marker += 1
+		if remove_patches:
+		# remove patches having distal with testing data
+			list_error = []
+			for i in range(self.K):
+				tmp = 0
+				for g in range(len(markerwithgap)):
+					tmp += list_F_matrix[g].list_error_patch[i]
+				list_error.append(tmp)
+			self.list_error = list_error
+			if current_mean < 0:
+				mean_error = np.mean(np.asarray(list_error))
+				self.mean_error = mean_error + 0.00001
+			print(list_error)
+			print(self.mean_error)
+			self.mean_error = max(self.mean_error, 4)
+			list_patches = []
+			for i in range(self.K):
+				if list_error[i] <= self.mean_error:
+					list_patches.append(i)
+			print(list_patches)
+			
+			self.list_patches = list_patches
+		return list_F_matrix
+
+	def normalization(self):
+		normed_matries, reconstruct_matries = compute_norm(self.combine_matrix)
+		return normed_matries, reconstruct_matries
+
+	def compute_svd(self):
+		p_AN = self.AN
+		p_AN0 = self.AN0
+		list_A0 = []
+		list_A = []
+
+		r = len(self.AN0)
+		l = r - self.fix_leng
+
+		while l >= 0:
+			list_A.append(np.copy(p_AN[l:r]))
+			list_A0.append(np.copy(p_AN0[l:r]))
+			l -= self.fix_leng
+			r -= self.fix_leng
+
+		_, tmp_Usigma, tmp_U = np.linalg.svd(p_AN/np.sqrt(p_AN.shape[0]-1), full_matrices = False)
+		self.UN = np.copy(tmp_U.T)
+
+		_, tmp_U0sigma, tmp_U0 = np.linalg.svd(p_AN0/np.sqrt(p_AN0.shape[0]-1), full_matrices = False)
+		self.UN0 = np.copy(tmp_U0.T)
+
+		ksmall = max(setting_rank(tmp_Usigma), setting_rank(tmp_U0sigma))
+		
+		self.UN = self.UN[:, :ksmall]
+		self.UN0 = self.UN0[:, :ksmall]
+		self.list_Ti = []
+
+		for patch_number in range(self.K):
+			AiUN = np.matmul(list_A[patch_number], self.UN)
+			Ai0UN0 = np.matmul(list_A0[patch_number], self.UN0)
+			
+			X = np.linalg.lstsq(Ai0UN0, AiUN, rcond = None)
+			self.list_Ti.append(np.copy(X[0]))
+
+		list_left_matrix = []
+		for patch_number in range(self.K):
+			current_patch = np.matmul(list_A[patch_number], self.UN) - matmul_list(
+				[list_A0[patch_number], self.UN0, self.list_Ti[patch_number]])
+			for column in range(ksmall):
+				for clm in range(ksmall):
+					tmp = np.multiply(current_patch[:, column], current_patch[:, clm])
+					list_left_matrix.append(tmp)
+
+		left_matrix = np.vstack(list_left_matrix)
+
+		u, d, v = np.linalg.svd(left_matrix)
+		v = v.T
+		weight_list = v[:, -1]
+		self.W = np.diag(weight_list)
+		# compute alpha
+			
+		list_Qjk = []
+		for j in range(self.K):
+			for h in range(self.K) :
+				tmpQ = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+					self.W, list_A[j], self.UN])
+				list_Qjk.append(tmpQ)
+		right_form = summatrix_list(list_Qjk)
+		xx, yy = right_form.shape
+		right_form = right_form.reshape(xx*yy, 1)
+		list_Pij_patch = []
+		for patch_number in range(self.K):
+			list_tmp = []
+			for j in range(self.K):
+				for h in range(self.K):
+					tmpP = matmul_list([matmul_list([list_A0[j], self.UN0, self.list_Ti[h]]).T, 
+						self.W, list_A0[j], self.UN0, self.list_Ti[patch_number]])
+					list_tmp.append(tmpP)
+			tmp = summatrix_list(list_tmp)
+			xx, yy = tmp.shape
+			list_Pij_patch.append(tmp.reshape(xx*yy, 1))
+
+		left_form = np.hstack([ x for x in list_Pij_patch])
+		self.list_alpha = np.linalg.lstsq(left_form, right_form, rcond = None)[0]
+		# self.list_alpha = np.linalg.lstsq(np.matmul(left_form.T, left_form), np.matmul(left_form.T, right_form), rcond = None)[0]
+		print(self.list_alpha)
+		return self.list_alpha
+
+
+	def interpolate_missing(self):
+		list_matrix = []
+		for j in range(self.K):
+			predictAj = []
+			patch_in_list = self.list_patches[j]
+			for g in range(len(self.markerwithgap)):
+				# list_matrix.append(self.F_matrix[g].interpolate_A[1])
+				predictAj.append(self.F_matrix[g].interpolate_A[patch_in_list])
+			tmp = self.list_alpha[patch_in_list] * summatrix_list(predictAj)
+			list_matrix.append(tmp)
+		result = summatrix_list(list_matrix)
+		result = result[-self.missing_matrix.shape[0]:] + self.MeanMat[-self.missing_matrix.shape[0]:]
 
 		final_result = np.copy(self.original_missing)
 		final_result[np.where(self.original_missing == 0)] = result[np.where(self.original_missing == 0)]
