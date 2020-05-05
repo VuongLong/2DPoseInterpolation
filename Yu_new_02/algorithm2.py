@@ -2402,7 +2402,10 @@ class interpolation_weighted_gap_dang_v5():
 		self.reference_matrix = np.copy(reference_matrix)
 		self.original_missing = missing_matrix
 		self.mean_error = -1
+		counter = 0
 		while True:
+			counter += 1
+			if counter > 5: break
 			current_mean_change = False
 			current_number_patch = self.reference_matrix.shape[0] // missing_matrix.shape[0]
 			self.F_matrix = self.prepare(remove_patches = True, current_mean = self.mean_error)
@@ -2491,12 +2494,12 @@ class interpolation_weighted_gap_dang_v5():
 		list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, len(full_frame_testdata))
 		self.list_frameidx_patch = list_frameidx_patch
 		counter_marker = 0
+		print(markerwithgap)
 		for marker in markerwithgap:
 			# print(marker)
 			missing_frame = np.where(test_data[:, marker*3] == 0)
 			# print(missing_frame)
 			EuclDist2Marker = compute_weight_vect_norm([marker], AA)
-			# print(EuclDist2Marker)
 			thresh = np.mean(EuclDist2Marker) * DistalThreshold
 			# print(thresh)
 			# stop
@@ -2540,7 +2543,7 @@ class interpolation_weighted_gap_dang_v5():
 				self.mean_error = mean_error + 0.00001
 			print(list_error)
 			print(self.mean_error)
-			self.mean_error = max(self.mean_error, 4)
+			# self.mean_error = max(self.mean_error, 4)
 			list_patches = []
 			for i in range(self.K):
 				if list_error[i] <= self.mean_error:
