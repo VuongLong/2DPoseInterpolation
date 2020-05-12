@@ -2494,7 +2494,7 @@ class interpolation_weighted_gap_dang_v5():
 		list_frameidx_patch = get_list_frameidx_patch(self.K, self.fix_leng, len(full_frame_testdata))
 		self.list_frameidx_patch = list_frameidx_patch
 		counter_marker = 0
-		print(markerwithgap)
+		# print(markerwithgap)
 		for marker in markerwithgap:
 			# print(marker)
 			missing_frame = np.where(test_data[:, marker*3] == 0)

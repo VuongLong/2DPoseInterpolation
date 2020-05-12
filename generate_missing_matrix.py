@@ -38,7 +38,7 @@ def generate_missing_joint_leng(n, m, frame_length, number_gap):
 
 def generate_missing_joint_gap(n, m, frame_length, number_gap):
 	# frames = 50
-	frames = 620
+	frames = 390
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
 	np.random.shuffle(joints)
@@ -82,6 +82,7 @@ def process_leng_missing():
 	print("reference A_N3: ",A_N3_source.shape)
 
 	length_missing = [10, 20, 50, 70]
+	# length_missing = [10, 20, 50, 70]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
 	sample = np.copy(Tracking3D[test_reference[0][0]:test_reference[0][1]])
