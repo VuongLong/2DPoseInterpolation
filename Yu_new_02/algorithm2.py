@@ -2395,14 +2395,17 @@ class interpolation_weighted_gap_dang_v4():
 
 
 class interpolation_weighted_gap_dang_v5():
-	def __init__(self, reference_matrix, missing_matrix):
+	def __init__(self, reference_matrix, missing_matrix, refine = True):
 		self.fix_leng = missing_matrix.shape[0]
 		self.combine_matrix = np.vstack((np.copy(reference_matrix), np.copy(missing_matrix)))
 		self.missing_matrix = missing_matrix
 		self.reference_matrix = np.copy(reference_matrix)
 		self.original_missing = missing_matrix
 		self.mean_error = -1
-		while True:
+		counter = 0
+		while refine:
+			counter += 1
+			if counter > 4: break
 			current_mean_change = False
 			current_number_patch = self.reference_matrix.shape[0] // missing_matrix.shape[0]
 			self.F_matrix = self.prepare(remove_patches = True, current_mean = self.mean_error)
@@ -2537,10 +2540,10 @@ class interpolation_weighted_gap_dang_v5():
 			self.list_error = list_error
 			if current_mean < 0:
 				mean_error = np.mean(np.asarray(list_error))
-				self.mean_error = mean_error + 0.00001
+				self.mean_error = mean_error + 0.000000001
 			print(list_error)
 			print(self.mean_error)
-			self.mean_error = max(self.mean_error, 4)
+			# self.mean_error = max(self.mean_error, 4)
 			list_patches = []
 			for i in range(self.K):
 				if list_error[i] <= self.mean_error:

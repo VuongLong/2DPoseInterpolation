@@ -49,8 +49,8 @@ def interpolation_weighted_dang_v4(source_data, test_data):
 	return result
 
 
-def interpolation_weighted_dang_v5(source_data, test_data):
-	interpolation = interpolation_weighted_gap_dang_v5(source_data, test_data)
+def interpolation_weighted_dang_v5(source_data, test_data, refine = True):
+	interpolation = interpolation_weighted_gap_dang_v5(source_data, test_data, refine)
 	result = interpolation.result_norm
 	return result
 
