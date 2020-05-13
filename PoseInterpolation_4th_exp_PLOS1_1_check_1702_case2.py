@@ -68,9 +68,9 @@ def process_hub5(data = None):
 	print("update reference:")
 	print("reference A_N: ",A_N_source_added.shape)
 	print("reference A_N3: ",A_N3_source_added.shape)
-	test_folder = "./test_only_1/test/"
+	# test_folder = "./test_only_1/test/"
 	# test_folder = "./fastsong7/test_data_Aniage_/"
-	# test_folder = "./test_data_Aniage_gap/"
+	test_folder = "./test_data_Aniage_gap/"
 	# test_folder = "./test_data_CMU_gap/"
 	order_fol = []
 	for test_name in os.listdir(test_folder):
@@ -169,7 +169,6 @@ def process_hub5(data = None):
 			resultA6.append(np.asarray(tmpA6).mean())
 			resultA7.append(np.asarray(tmpA7).mean())
 			resultA8.append(np.asarray(tmpA8).mean())
-			break
 	print(order_fol)
 	return [resultA3, resultA4, resultA5, resultA6, resultA7, resultA8]
 
@@ -177,40 +176,40 @@ def process_hub5(data = None):
 
 if __name__ == '__main__':
 
-	# refer_link = ["./data3D/fastsong8.txt","./data3D/fastsong6.txt",]
-	# resource_refer = [[350, 650], [350, 550]]
-	# # refer_link = ["./data3D/fastsong7.txt"]
-	# # resource_refer = [[450, 750]]
-	# tmp_AN = []
-	# tmp_AN3= []
-	# counter = 0
-	# for x in refer_link:
-	# 	print("reading source: ", x)
-	# 	# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
-	# 	source , _  = read_tracking_data3D_v2(x)
-	# 	source = remove_joint(source)
-	# 	source = source.astype(float)
-	# 	source = source[resource_refer[counter][0]:resource_refer[counter][1]]
-	# 	counter += 1
-	# 	K = source.shape[0] // arg.length3D
-	# 	list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
-	# 	AN_source = np.hstack(
-	# 		[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
-	# 	tmp_AN.append(AN_source)
-	# 	AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
-	# 	tmp_AN3.append(AN3_source)
-	# source_AN = np.hstack(tmp_AN)
-	# source_AN3 = np.vstack(tmp_AN3)
+	refer_link = ["./data3D/fastsong8.txt","./data3D/fastsong6.txt",]
+	resource_refer = [[350, 650], [350, 550]]
+	# refer_link = ["./data3D/fastsong7.txt"]
+	# resource_refer = [[450, 750]]
+	tmp_AN = []
+	tmp_AN3= []
+	counter = 0
+	for x in refer_link:
+		print("reading source: ", x)
+		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
+		source , _  = read_tracking_data3D_v2(x)
+		source = remove_joint(source)
+		source = source.astype(float)
+		source = source[resource_refer[counter][0]:resource_refer[counter][1]]
+		counter += 1
+		K = source.shape[0] // arg.length3D
+		list_patch = [[x*arg.length3D, (x+1)*arg.length3D] for x in range(K)]
+		AN_source = np.hstack(
+			[np.copy(source[list_patch[i][0]:list_patch[i][1]]) for i in range(K)])
+		tmp_AN.append(AN_source)
+		AN3_source = np.copy(source[list_patch[0][0]: list_patch[-1][1]])
+		tmp_AN3.append(AN3_source)
+	source_AN = np.hstack(tmp_AN)
+	source_AN3 = np.vstack(tmp_AN3)
 
-	# print("reference source:")
-	# print(source_AN.shape)
-	# print(source_AN3.shape)
+	print("reference source:")
+	print(source_AN.shape)
+	print(source_AN3.shape)
 	data_link = "./data3D/fastsong7.txt"
 	# data_link = "./data3D/HDM5.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
 	Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
-	# result = process_hub5(data = [source_AN, source_AN3])
+	#ßresult = process_hub5(data = [source_AN, source_AN3])
 	result = process_hub5()
 	print(result)
