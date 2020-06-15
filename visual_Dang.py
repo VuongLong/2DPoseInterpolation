@@ -89,15 +89,17 @@ if __name__ == '__main__':
 	fig.set_size_inches(8, 12)
 	ax = fig.add_subplot(111, projection='3d')
 	for index in range(0, Tracking3D.shape[0]):
+		
 		if index > 10: 
 			break
 		plt.cla()
 		print(index)
-		frame = Tracking3D[index]
+		frame = Tracking3D[300*index]
 		n_joints = len(frame) // 3
 		xs = []
 		ys = []
 		zs = []
+		missing_point = 10
 		for x in range(n_joints):
 			xs.append(frame[x*3])
 			ys.append(frame[x*3+1])
@@ -112,13 +114,16 @@ if __name__ == '__main__':
 		# 	yys = [ys[tmp],ys[tmp+1]]
 		# 	zzs = [zs[tmp],zs[tmp+1]]
 		# 	ax.plot(xxs, yys, zzs, 'b')
+		xs[missing_point] = 0
+		ys[missing_point] = 0
+		zs[missing_point] = 0
 
 		for x in range(len(dad_arr)):
 			dad = dad_arr[x][0]
 			child = dad_arr[x][1]
 			my_color = 'b'
-			if (dad == 14) or (child == 14):
-				my_color = 'g'
+			# if (dad == 14) or (child == 14):
+			# 	my_color = 'g'
 			xxs = [xs[dad],xs[child]]
 			yys = [ys[dad],ys[child]]
 			zzs = [zs[dad],zs[child]]
@@ -139,7 +144,13 @@ if __name__ == '__main__':
 		# ax.set_xlabel('X Label')
 		# ax.set_ylabel('Y Label')
 		# ax.set_zlabel('Z Label')
-		plt.pause(0.0001)
+		ax.view_init(elev=0., azim=-10)
+		# plt.savefig("filename"+ str(index)+".png")
+		plt.yticks(visible=False)
+		plt.xticks(visible=False)
+		plt.savefig('filename'+ str(index) +'.eps', format='eps')
+		plt.pause(0.1)
+		# tmp_img = plt.gcf()
 
 	plt.show()
 	plt.close()
