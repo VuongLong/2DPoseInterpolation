@@ -12,7 +12,7 @@ def generate_missing_joint_gap(n, m, frame_length, number_gap):
 	# CMU: LSHO 9; LKNE: 28; LWA 14
 
 	# ANIAGE: LSHO 2; LKNE 10; LWA 4
-	frames = 70
+	frames = 250
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
 	counter = 0

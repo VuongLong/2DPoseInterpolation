@@ -54,5 +54,10 @@ def interpolation_weighted_dang_v5(source_data, test_data, refine = True):
 	result = interpolation.result_norm
 	return result
 
+def PLOS_R2(source_data, test_data):
+	interpolation = PCA_R2(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
 if __name__ == '__main__':
 	print("ok")
