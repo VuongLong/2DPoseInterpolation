@@ -2,9 +2,9 @@ import argparse
 
 class arguments(argparse.Namespace):
 
-	length3D = 100
-	reference_task4_3D = [[450, 550]]
-	reference_task4_3D_source = [[150, 250],[250, 350], [350, 450], [150, 250],[250, 350], [550, 650]]
+	length3D = 400
+	reference_task4_3D = [[1050, 1450]]
+	reference_task4_3D_source = [[250, 650], [650, 1050]]
 # [[350, 450], [150, 250], [550, 650]]
 	ingore_confidence = True
 

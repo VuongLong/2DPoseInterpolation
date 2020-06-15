@@ -51,6 +51,7 @@ def process_hub5(data = None):
 	resultA6 = []
 	resultA7 = []
 	resultA8 = []
+	result_list = []
 	list_patch = arg.reference_task4_3D_source
 	print(list_patch)
 	A_N_source = np.hstack(
@@ -131,14 +132,13 @@ def process_hub5(data = None):
 							A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
 						
-						# A1_star5 = interpolation_weighted_dang_v2(np.copy(A_N3_source_added), np.copy(A1zero))
+						# A1_star5 = interpolation_weighted_T_gap(np.copy(A_N3_source_added), np.copy(A1zero))
 						# value = np.around(calculate_mae_matrix(
 						# 	A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17)
 						# print(value)
 						# tmpG.append(value)
 
-						print("v4")
-						A1_star6 = interpolation_weighted_dang_v4(np.copy(A_N3_source_added), np.copy(A1zero))
+						A1_star6 = PLOS_R2(np.copy(A_N3_source_added), np.copy(A1zero))
 						tmpH.append(np.around(calculate_mae_matrix(
 							A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
 
@@ -152,6 +152,10 @@ def process_hub5(data = None):
 						value = np.around(calculate_mae_matrix(
 							A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17)
 						print(value)
+						# tmp_result = np.copy(A1zero)
+						# tmp_result[np.where(A1zero == 0)] = A1_star8[np.where(A1zero == 0)]
+						# np.savetxt("interpolate.txt", tmp_result, fmt = "%.4f")
+						# stop
 						tmpS.append(value)
 						# # save file for rendering
 						#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
@@ -169,8 +173,14 @@ def process_hub5(data = None):
 			resultA6.append(np.asarray(tmpA6).mean())
 			resultA7.append(np.asarray(tmpA7).mean())
 			resultA8.append(np.asarray(tmpA8).mean())
+<<<<<<< HEAD
 			break
+=======
+			# result_list.append(tmpA8)
+>>>>>>> ddd10bfd35d45e469a4eb3f534db27e6af91b5a0
 	print(order_fol)
+	# np.savetxt("result.txt", result_list, fmt = "%.4f")
+	# print(result_list)
 	return [resultA3, resultA4, resultA5, resultA6, resultA7, resultA8]
 
 
@@ -205,8 +215,8 @@ if __name__ == '__main__':
 	# print("reference source:")
 	# print(source_AN.shape)
 	# print(source_AN3.shape)
-	data_link = "./data3D/fastsong7.txt"
-	# data_link = "./data3D/HDM5.txt"
+	# data_link = "./data3D/fastsong7.txt"
+	data_link = "./data3D/HDM5.txt"
 		# Tracking3D, restore  = read_tracking_data3D(arg.data_dir3D)
 	Tracking3D, _  = read_tracking_data3D_v2(data_link)
 	Tracking3D = remove_joint(Tracking3D)

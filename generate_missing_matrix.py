@@ -37,7 +37,8 @@ def generate_missing_joint_leng(n, m, frame_length, number_gap):
 
 
 def generate_missing_joint_gap(n, m, frame_length, number_gap):
-	frames = 240
+	# frames = 50
+	frames = 390
 	matrix = np.ones((n,m))
 	joints = np.arange(m//3)
 	np.random.shuffle(joints)
@@ -53,6 +54,7 @@ def generate_missing_joint_gap(n, m, frame_length, number_gap):
 			matrix[frame, missing_joint*3+1] = 0
 			matrix[frame, missing_joint*3+2] = 0
 	counter = 0
+
 	for x in range(n):
 		for y in range(m):
 			if matrix[x][y] == 0: counter +=1
@@ -80,6 +82,7 @@ def process_leng_missing():
 	print("reference A_N3: ",A_N3_source.shape)
 
 	length_missing = [10, 20, 50, 70]
+	# length_missing = [10, 20, 50, 70]
 	test_reference = arg.reference_task4_3D
 	number_patch = len(arg.reference_task4_3D)
 	sample = np.copy(Tracking3D[test_reference[0][0]:test_reference[0][1]])
@@ -121,6 +124,7 @@ def process_leng_missing():
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
 			# np.savetxt("./test_data_Aniage_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+<<<<<<< HEAD
 			# np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
 	
@@ -128,6 +132,15 @@ def process_leng_missing():
 	# f = open("./test_data_CMU_leng/info.txt", "w")
 	# f.write(str(datetime.now()))
 	# f.close()
+=======
+			np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
+	
+	# f = open("./test_data_Aniage_leng/info.txt", "w")
+	f = open("./test_data_CMU_leng/info.txt", "w")
+	f.write(str(datetime.now()))
+	f.close()
+>>>>>>> ddd10bfd35d45e469a4eb3f534db27e6af91b5a0
 	return 
 
 
@@ -195,12 +208,21 @@ def process_gap_missing():
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 
 			# np.savetxt("./test_data_Aniage_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+<<<<<<< HEAD
 			# np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 
 	# f = open("./test_data_Aniage_gap/info.txt", "w")
 	# f = open("./test_data_CMU_gap/info.txt", "w")
 	# f.write(str(datetime.now()))
 	# f.close()		
+=======
+			np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
+
+	# f = open("./test_data_Aniage_gap/info.txt", "w")
+	f = open("./test_data_CMU_gap/info.txt", "w")
+	f.write(str(datetime.now()))
+	f.close()		
+>>>>>>> ddd10bfd35d45e469a4eb3f534db27e6af91b5a0
 	return 
 
 
