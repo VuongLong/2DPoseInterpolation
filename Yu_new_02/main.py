@@ -22,7 +22,7 @@ def interpolation_T_1702(source_data, test_data, norm = False):
 	return result
 
 def interpolation_weighted_T_gap(source_data, test_data):
-	interpolation = interpolation_weighted_gap(source_data, test_data)
+	interpolation = interpolation_weighted_gap_Yu_v3(source_data, test_data)
 	result = interpolation.result_norm
 	return result
 
@@ -51,6 +51,11 @@ def interpolation_weighted_dang_v4(source_data, test_data):
 
 def interpolation_weighted_dang_v5(source_data, test_data):
 	interpolation = interpolation_weighted_gap_dang_v5(source_data, test_data)
+	result = interpolation.result_norm
+	return result
+
+def PLOS_R2(source_data, test_data):
+	interpolation = PCA_R2(source_data, test_data)
 	result = interpolation.result_norm
 	return result
 

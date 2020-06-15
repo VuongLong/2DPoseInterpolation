@@ -132,16 +132,15 @@ def process_hub5(data = None):
 							A1[np.where(A1zero == 0)]- A1_star4[np.where(A1zero == 0)]), decimals = 17))
 
 						
-						# A1_star5 = interpolation_weighted_dang_v2(np.copy(A_N3_source_added), np.copy(A1zero))
+						# A1_star5 = interpolation_weighted_T_gap(np.copy(A_N3_source_added), np.copy(A1zero))
 						# value = np.around(calculate_mae_matrix(
 						# 	A1[np.where(A1zero == 0)]- A1_star5[np.where(A1zero == 0)]), decimals = 17)
 						# print(value)
 						# tmpG.append(value)
 
-						# print("v4")
-						# A1_star6 = interpolation_weighted_dang_v4(np.copy(A_N3_source_added), np.copy(A1zero))
-						# tmpH.append(np.around(calculate_mae_matrix(
-						# 	A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
+						A1_star6 = PLOS_R2(np.copy(A_N3_source_added), np.copy(A1zero))
+						tmpH.append(np.around(calculate_mae_matrix(
+							A1[np.where(A1zero == 0)]- A1_star6[np.where(A1zero == 0)]), decimals = 17))
 
 						# print("T")
 						# A1_star7 = interpolation_weighted_T_1702(np.copy(A_N3_source_added), np.copy(A1zero), True)
@@ -153,10 +152,10 @@ def process_hub5(data = None):
 						value = np.around(calculate_mae_matrix(
 							A1[np.where(A1zero == 0)]- A1_star8[np.where(A1zero == 0)]), decimals = 17)
 						print(value)
-						# # tmp_result = np.copy(A1zero)
-						# # tmp_result[np.where(A1zero == 0)] = A1_star8[np.where(A1zero == 0)]
-						# # np.savetxt("interpolate.txt", tmp_result, fmt = "%.4f")
-						# # stop
+						# tmp_result = np.copy(A1zero)
+						# tmp_result[np.where(A1zero == 0)] = A1_star8[np.where(A1zero == 0)]
+						# np.savetxt("interpolate.txt", tmp_result, fmt = "%.4f")
+						# stop
 						tmpS.append(value)
 						# # save file for rendering
 						#np.savetxt(result_path + "/original.txt", A1, fmt = "%.2f")
