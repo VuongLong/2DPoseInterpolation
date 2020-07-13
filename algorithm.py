@@ -1576,9 +1576,9 @@ def interpolation_24_v6(AA, AA1):
 	return result.T
 
 
-def PCA_PLOS1_F4(AA, AA1):
+def PCA_PLOS1_F4(AA1):
 
-	combine_matrix = np.vstack((AA, AA1))
+	combine_matrix = np.copy(AA1)
 	weightScale = 200
 	MMweight = 0.02
 	[frames, columns] = combine_matrix.shape
@@ -1586,8 +1586,8 @@ def PCA_PLOS1_F4(AA, AA1):
 	frameindex = np.where(combine_matrix == 0)[0]
 	columnwithgap = np.unique(columnindex)
 	markerwithgap = np.unique(columnwithgap // 3)
-	columnwithgap_bypatch = np.copy(columnwithgap - AA.shape[1])
-	markerwithgap_bypatch = np.unique(columnwithgap_bypatch // 3)
+	# columnwithgap_bypatch = np.copy(columnwithgap - AA.shape[1])
+	# markerwithgap_bypatch = np.unique(columnwithgap_bypatch // 3)
 	framewithgap = np.unique(frameindex)
 	Data_without_gap = np.delete(combine_matrix, columnwithgap, 1)
 	mean_data_withoutgap_vec = np.mean(Data_without_gap, 1).reshape(Data_without_gap.shape[0], 1)

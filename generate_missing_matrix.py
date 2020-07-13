@@ -124,15 +124,6 @@ def process_leng_missing():
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 						# fetch the rest of patch for reference AN and AN3
 			# np.savetxt("./test_data_Aniage_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-<<<<<<< HEAD
-			# np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
-	
-	# f = open("./test_data_Aniage_leng/info.txt", "w")
-	# f = open("./test_data_CMU_leng/info.txt", "w")
-	# f.write(str(datetime.now()))
-	# f.close()
-=======
 			np.savetxt("./test_data_CMU_leng/"+ str(nframe) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 			# np.savetxt("./test_data/"+ str(nframe) +"/"+str(times)+ "_patch.txt", np.asarray(patch_arr), fmt = "%d")
 	
@@ -140,7 +131,6 @@ def process_leng_missing():
 	f = open("./test_data_CMU_leng/info.txt", "w")
 	f.write(str(datetime.now()))
 	f.close()
->>>>>>> ddd10bfd35d45e469a4eb3f534db27e6af91b5a0
 	return 
 
 
@@ -208,21 +198,12 @@ def process_gap_missing():
 					full_matrix[starting_frame_A1:arg.length3D+starting_frame_A1] = missing_matrix
 
 			# np.savetxt("./test_data_Aniage_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-<<<<<<< HEAD
-			# np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
-
-	# f = open("./test_data_Aniage_gap/info.txt", "w")
-	# f = open("./test_data_CMU_gap/info.txt", "w")
-	# f.write(str(datetime.now()))
-	# f.close()		
-=======
 			np.savetxt("./test_data_CMU_gap/"+ str(gap) +"/"+str(times)+ ".txt", full_matrix, fmt = "%d")
 
 	# f = open("./test_data_Aniage_gap/info.txt", "w")
 	f = open("./test_data_CMU_gap/info.txt", "w")
 	f.write(str(datetime.now()))
 	f.close()		
->>>>>>> ddd10bfd35d45e469a4eb3f534db27e6af91b5a0
 	return 
 
 
@@ -245,5 +226,5 @@ if __name__ == '__main__':
 	Tracking3D, _  = read_tracking_data3D_v2(data_link[0])
 	# Tracking3D = remove_joint(Tracking3D)
 	Tracking3D = Tracking3D.astype(float)
-	process_leng_missing()
+	# process_leng_missing()
 	process_gap_missing()
